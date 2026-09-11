@@ -45,6 +45,20 @@ Everything is interactive at the shell level: nav switches the active item, laye
 - Fonts: a condensed technical sans for labels and a mono for numeric readouts, loaded via a link tag in the root route.
 - Route head metadata updated for the console.
 
+## Mock dataset
+
+`src/data/mock/` holds a normalized dataset shaped exactly like the post-ingestion records, so the same components later swap onto live feeds without changes:
+
+- `aircraft.ts` — ~120 entries matching `aircraft_positions` (icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at), spread across realistic air corridors, a mix of civil and military callsigns.
+- `vessels.ts` — ~90 entries matching `vessel_positions` (mmsi, ship_name, lat, lon, speed_kn, course_deg, heading_deg, ship_type), clustered on shipping lanes: Malacca, Suez, Gulf, English Channel.
+- `satellites.ts` — ~40 entries matching `satellite_tles` (norad_id, name, tle_line1, tle_line2, category) using real, valid TLE strings for ISS, NOAA, GOES, GPS and Starlink samples, plus precomputed ground tracks for display.
+- `launches.ts` — ~10 entries matching `launches` (id, name, rocket, mission, provider, pad_name, pad_lat, pad_lon, window_start, window_end, status).
+- `events.ts`, `alerts.ts`, `insights.ts` — timeline events, active alerts and AI insight cards derived from the entries above so the feed references real callsigns and vessel names.
+- `index.ts` exports a single `mockDataset` plus per-type selectors and a `toEntity()` normalizer that maps any record to the shared entity shape the map and detail panel consume.
+
+Timestamps are generated relative to load time so the console always looks current. Records include the extra display fields the reference shows (affiliation, classification, risk score, nearby entities) on the entity model, kept separate from the database-shaped fields.
+
+
 ## Not in this step
 
 Live ADSB / AIS / TLE / launch data, scheduled ingestion, realtime subscriptions, 3D globe mode, and working search — all follow once the interface is approved.
