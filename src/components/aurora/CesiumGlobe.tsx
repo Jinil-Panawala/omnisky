@@ -156,7 +156,7 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     for (const e of visible) {
       const isSelected = e.id === selectedId;
       const heightM = e.type === "satellite" ? 550_000 : e.type === "aircraft" ? 10_000 : 0;
-      const size = isSelected ? 40 : 28;
+      const size = isSelected ? 44 : 32;
       viewer.entities.add({
         id: e.id,
         name: e.name,
