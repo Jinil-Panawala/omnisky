@@ -98,7 +98,6 @@ function normalise(raw: Array<Record<string, unknown>>): AircraftRow[] {
   const now = new Date().toISOString();
   const rows = raw
     .filter((a) => validCoord(a["lat"], a["lon"]))
-    .slice(0, MAX_AIRCRAFT)
     .map((a) => ({
       icao24: String(a["hex"] ?? "").trim(),
       callsign:
