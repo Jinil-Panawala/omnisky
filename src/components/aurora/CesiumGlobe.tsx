@@ -33,7 +33,7 @@ const entityColors: Record<EntityType, string> = {
 const NIGHT_LIGHTS =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg";
 const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png";
-const STREET_MAP = "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+const STREET_MAP = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 type BaseMapMode = "lights" | "map";
 
