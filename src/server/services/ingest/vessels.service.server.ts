@@ -1,14 +1,17 @@
 // AISStream adapter + processing pass for vessels.
 // Free API key (server-side only). Worldwide bounding box, capped sample per tick.
+import { dedupe, POSITION_TTL_MS, validCoord } from "@/domain/ingest";
+import type { IngestResult } from "@/domain/live";
 import {
-  dedupe,
-  recordSourceHealth,
-  validCoord,
-  type IngestResult,
-} from "./shared.server";
+  insertPositionHistory,
+  pruneOlderThan,
+  upsertVesselPositions,
+} from "@/server/db/positions.repository.server";
+import { runIngest } from "./run.server";
 
 const COLLECT_MS = 8000;
 const MAX_VESSELS = 2000;
+const HISTORY_SAMPLE_CAP = 200;
 export const VESSEL_SOURCE = "aisstream";
 
 interface AisMessage {
