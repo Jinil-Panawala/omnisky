@@ -61,7 +61,9 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
           "dark-matter": {
             type: "raster",
             tiles: [
-              "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
             attribution: "&copy; CARTO",
