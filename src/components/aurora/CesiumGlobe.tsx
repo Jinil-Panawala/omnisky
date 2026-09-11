@@ -31,7 +31,7 @@ const entityColors: Record<EntityType, string> = {
 
 const NIGHT_LIGHTS =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg";
-const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png";
+const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png";
 
 export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,13 +73,12 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     const labels = viewer.imageryLayers.addImageryProvider(
       new UrlTemplateImageryProvider({
         url: DARK_LABELS,
-        maximumLevel: 12,
+        maximumLevel: 14,
         credit: "© OpenStreetMap contributors, © CARTO",
       })
     );
-    labels.alpha = 0.18;
-    labels.brightness = 0.7;
-    labels.saturation = 0.2;
+    labels.alpha = 0.95;
+    labels.brightness = 1.6;
 
     const scene = viewer.scene;
     scene.backgroundColor = Color.fromCssColorString("#04070f");
