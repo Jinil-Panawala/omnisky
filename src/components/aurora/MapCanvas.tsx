@@ -58,24 +58,31 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
         },
         light: { anchor: "map", intensity: 0.2 },
         sources: {
-          "dark-matter": {
+          basemap: {
             type: "raster",
-            tiles: [
-              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-            ],
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
             tileSize: 256,
-            attribution: "&copy; CARTO",
+            attribution: "&copy; OpenStreetMap contributors",
           },
         },
         layers: [
           {
-            id: "dark-matter-layer",
+            id: "space",
+            type: "background",
+            paint: { "background-color": "#050a18" },
+          },
+          {
+            id: "basemap-layer",
             type: "raster",
-            source: "dark-matter",
+            source: "basemap",
             minzoom: 0,
-            maxzoom: 22,
+            maxzoom: 19,
+            paint: {
+              "raster-saturation": -0.9,
+              "raster-brightness-max": 0.45,
+              "raster-contrast": 0.15,
+              "raster-opacity": 0.9,
+            },
           },
         ],
       },
