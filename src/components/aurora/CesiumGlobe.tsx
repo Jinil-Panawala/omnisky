@@ -130,21 +130,19 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     viewer.entities.removeAll();
 
     for (const e of visible) {
-      const color = Color.fromCssColorString(entityColors[e.type]);
       const isSelected = e.id === selectedId;
       const heightM = e.type === "satellite" ? 550_000 : e.type === "aircraft" ? 10_000 : 0;
+      const size = isSelected ? 40 : 28;
       viewer.entities.add({
         id: e.id,
         name: e.name,
         position: Cartesian3.fromDegrees(e.lon, e.lat, heightM),
-        point: {
-          pixelSize: isSelected ? 13 : 7,
-          color,
-          outlineColor: isSelected
-            ? Color.fromCssColorString("#e2e8f0")
-            : color.withAlpha(0.35),
-          outlineWidth: isSelected ? 3 : 6,
-          scaleByDistance: new NearFarScalar(1_000_000, 1.6, 30_000_000, 0.7),
+        billboard: {
+          image: entityIconUrl(e.type, entityColors[e.type], isSelected),
+          width: size,
+          height: size,
+          scaleByDistance: new NearFarScalar(1_000_000, 1.35, 30_000_000, 0.75),
+          disableDepthTestDistance: 0,
         },
       });
     }
