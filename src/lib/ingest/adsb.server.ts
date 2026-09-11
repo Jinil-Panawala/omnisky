@@ -81,8 +81,8 @@ const MAX_AIRCRAFT = 20000;
 // ADSB.lol rate-limits bursts hard (429 after a handful of calls), so each pull
 // covers a rotating slice of the world and positions are kept until they age
 // out — a few pulls in, the whole map is populated.
-const REGIONS_PER_PULL = 8;
-const REGION_PACE_MS = 1100;
+const REGIONS_PER_PULL = 3;
+const REGION_PACE_MS = 2000;
 const POSITION_TTL_MS = 30 * 60 * 1000;
 const BATCH = 500;
 export const AIRCRAFT_SOURCE = "adsb.lol";
