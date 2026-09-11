@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Map, NavigationControl, AttributionControl, GeoJSONSource } from "maplibre-gl";
+import { Map, NavigationControl, AttributionControl, GeoJSONSource, setWorkerUrl } from "maplibre-gl";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Entity, EntityType, LayerVisibility } from "./types";
 
@@ -35,6 +36,8 @@ type GeoJSONFeatureCollection = {
   }>;
 };
 
+setWorkerUrl(maplibreWorkerUrl);
+
 export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
@@ -47,28 +50,66 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
       container: mapContainer.current,
       style: {
         version: 8,
+        projection: { type: "globe" },
+        sky: {
+          "sky-color": "#050a18",
+          "sky-horizon-blend": 0.5,
+          "horizon-color": "#0b1a35",
+          "horizon-fog-blend": 0.6,
+          "fog-color": "#0b1020",
+          "fog-ground-blend": 0.1,
+        },
+        light: { anchor: "map", intensity: 0.2 },
         sources: {
-          "dark-matter": {
+          nightlights: {
             type: "raster",
             tiles: [
-              "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+              "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg",
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO",
+            maxzoom: 8,
+            attribution: "NASA EOSDIS GIBS",
+          },
+          labels: {
+            type: "raster",
+            tiles: [
+              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            attribution: "&copy; OpenStreetMap contributors, &copy; CARTO",
           },
         },
         layers: [
           {
-            id: "dark-matter-layer",
+            id: "space",
+            type: "background",
+            paint: { "background-color": "#04070f" },
+          },
+          {
+            id: "nightlights-layer",
             type: "raster",
-            source: "dark-matter",
-            minzoom: 0,
-            maxzoom: 22,
+            source: "nightlights",
+            paint: {
+              "raster-opacity": 1,
+              "raster-contrast": 0.2,
+              "raster-saturation": -0.15,
+            },
+          },
+          {
+            id: "labels-layer",
+            type: "raster",
+            source: "labels",
+            minzoom: 3,
+            paint: {
+              "raster-opacity": 0.35,
+              "raster-saturation": -0.8,
+            },
           },
         ],
       },
-      center: [20, 25],
-      zoom: 2.2,
+      center: [24, 22],
+      zoom: 1.75,
       pitch: 0,
       bearing: 0,
       attributionControl: false,
@@ -129,10 +170,10 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
             "interpolate",
             ["linear"],
             ["zoom"],
-            2,
-            8,
+            1,
             10,
-            18,
+            10,
+            24,
           ],
           "circle-color": ["match", ["get", "type"], "aircraft", entityColors.aircraft, "ship", entityColors.ship, "satellite", entityColors.satellite, entityColors.launch],
           "circle-opacity": 0.25,
@@ -149,14 +190,14 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
             "interpolate",
             ["linear"],
             ["zoom"],
-            2,
-            3,
+            1,
+            4.5,
             10,
-            7,
+            9,
           ],
           "circle-color": ["match", ["get", "type"], "aircraft", entityColors.aircraft, "ship", entityColors.ship, "satellite", entityColors.satellite, entityColors.launch],
-          "circle-stroke-color": "#0b1020",
-          "circle-stroke-width": 1.5,
+          "circle-stroke-color": ["case", ["==", ["get", "selected"], true], "#e2e8f0", "#0b1020"],
+          "circle-stroke-width": ["case", ["==", ["get", "selected"], true], 3, 1.5],
         },
       });
 
@@ -221,7 +262,8 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
 
   return (
     <div className="relative w-full h-full bg-surface-1">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="h-full w-full" />
+      <div className="pointer-events-none absolute inset-0 aurora-globe-vignette" />
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface-1 text-console-subtle">
           <div className="flex flex-col items-center gap-3">
