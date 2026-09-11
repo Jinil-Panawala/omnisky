@@ -73,13 +73,12 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     const labels = viewer.imageryLayers.addImageryProvider(
       new UrlTemplateImageryProvider({
         url: DARK_LABELS,
-        maximumLevel: 12,
+        maximumLevel: 14,
         credit: "© OpenStreetMap contributors, © CARTO",
       })
     );
-    labels.alpha = 0.18;
-    labels.brightness = 0.7;
-    labels.saturation = 0.2;
+    labels.alpha = 0.95;
+    labels.brightness = 1.6;
 
     const scene = viewer.scene;
     scene.backgroundColor = Color.fromCssColorString("#04070f");
