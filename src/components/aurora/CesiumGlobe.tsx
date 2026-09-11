@@ -13,6 +13,7 @@ import {
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import type { Entity, EntityType, LayerVisibility } from "./types";
+import { entityIconUrl } from "./entityIcons";
 
 interface CesiumGlobeProps {
   entities: Entity[];
