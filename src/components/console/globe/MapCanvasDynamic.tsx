@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Entity, LayerVisibility } from "../types";
+import type { Entity, LayerVisibility } from "@/domain/console";
 import type { GlobeViewState } from "./CesiumGlobe";
 
 export type { GlobeViewState };

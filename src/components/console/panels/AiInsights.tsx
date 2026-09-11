@@ -1,5 +1,5 @@
 import { Sparkles, BrainCircuit } from "lucide-react";
-import type { AiInsight } from "../types";
+import type { AiInsight } from "@/domain/console";
 
 interface AiInsightsProps {
   insights: AiInsight[];

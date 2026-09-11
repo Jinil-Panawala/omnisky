@@ -12,7 +12,7 @@ import type {
   LaunchSnapshotRow,
   SatelliteSnapshotRow,
   VesselSnapshotRow,
-} from "@/api/live.functions";
+} from "@/domain/live";
 
 export const SOURCE_ATTRIBUTION = [
   { label: "ADSB.lol", href: "https://adsb.lol", scope: "Aircraft" },
