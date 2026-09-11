@@ -71,6 +71,18 @@ function Index() {
   const [mode, setMode] = useState<DataMode>("demo");
   const [view, setView] = useState<GlobeViewState>({ bounds: null, heightM: 24_000_000 });
 
+  // Side panels can be hidden to give the map the full width.
+  const [panels, setPanels] = useState<PanelVisibility>({
+    filters: true,
+    alerts: true,
+    feed: true,
+    details: true,
+  });
+  const togglePanel = useCallback((key: keyof PanelVisibility) => {
+    setPanels((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+
   // Dev/QA flags: ?stress=1 loads a synthetic 45k-object dataset, ?stats=1 shows metrics.
   const [flags, setFlags] = useState<{ stress: boolean; stats: boolean; counts: number[] }>({
     stress: false,
