@@ -312,6 +312,9 @@ export function CesiumGlobe({
       if (cameraTimer) clearTimeout(cameraTimer);
       if (hoverTimer) clearTimeout(hoverTimer);
       scene.postRender.removeEventListener(onPostRender);
+      scene.preRender.removeEventListener(onPreRender);
+      animatedRef.current = [];
+      motionRef.current.clear();
       handler.destroy();
       viewer.destroy();
       viewerRef.current = null;
