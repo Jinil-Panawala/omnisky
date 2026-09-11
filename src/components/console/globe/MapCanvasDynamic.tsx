@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import type { Entity, LayerVisibility } from "../types";
+import type { GlobeViewState } from "./CesiumGlobe";
 
-interface MapCanvasDynamicProps {
+export type { GlobeViewState };
+
+export interface MapCanvasDynamicProps {
   entities: Entity[];
   layers: LayerVisibility;
   selectedId?: string | null | undefined;
   onSelect: (entity: Entity) => void;
+  onViewChange?: ((view: GlobeViewState) => void) | undefined;
+  track?: Array<{ lat: number; lon: number }> | undefined;
+  showStats?: boolean | undefined;
+  dataLoading?: boolean | undefined;
 }
 
-export function MapCanvasDynamic({ entities, layers, selectedId, onSelect }: MapCanvasDynamicProps) {
+export function MapCanvasDynamic(props: MapCanvasDynamicProps) {
   const [Globe, setGlobe] = useState<React.ComponentType<MapCanvasDynamicProps> | null>(null);
 
   useEffect(() => {
@@ -33,5 +40,5 @@ export function MapCanvasDynamic({ entities, layers, selectedId, onSelect }: Map
     );
   }
 
-  return <Globe entities={entities} layers={layers} selectedId={selectedId} onSelect={onSelect} />;
+  return <Globe {...props} />;
 }
