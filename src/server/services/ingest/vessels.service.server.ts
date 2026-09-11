@@ -133,30 +133,18 @@ function collectVessels(apiKey: string): Promise<VesselRow[]> {
   });
 }
 
-export async function ingestVessels(): Promise<IngestResult> {
-  const apiKey = process.env["AISSTREAM_API_KEY"];
-  if (!apiKey) {
-    await recordSourceHealth(VESSEL_SOURCE, {
-      error: "AISSTREAM_API_KEY not configured",
-    });
-    throw new Error("AISSTREAM_API_KEY not configured");
-  }
-  try {
-    const rows = await collectVessels(apiKey);
-    if (rows.length === 0) {
-      await recordSourceHealth(VESSEL_SOURCE, { rows: 0 });
-      return { source: VESSEL_SOURCE, upserted: 0 };
-    }
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const { error } = await supabaseAdmin
-      .from("vessel_positions")
-      .upsert(rows, { onConflict: "mmsi" });
-    if (error) throw new Error(error.message);
+export function ingestVessels(): Promise<IngestResult> {
+  return runIngest(VESSEL_SOURCE, async () => {
+    const apiKey = process.env["AISSTREAM_API_KEY"];
+    if (!apiKey) throw new Error("AISSTREAM_API_KEY not configured");
 
-    await supabaseAdmin.from("position_history").insert(
-      rows.slice(0, 200).map((r) => ({
+    const rows = await collectVessels(apiKey);
+    if (rows.length === 0) return 0;
+
+    const upserted = await upsertVesselPositions(rows);
+
+    await insertPositionHistory(
+      rows.slice(0, HISTORY_SAMPLE_CAP).map((r) => ({
         craft_type: "vessel" as const,
         craft_id: r.mmsi,
         lat: r.lat,
@@ -166,16 +154,8 @@ export async function ingestVessels(): Promise<IngestResult> {
       })),
     );
 
-    await supabaseAdmin
-      .from("vessel_positions")
-      .delete()
-      .lt("updated_at", new Date(Date.now() - 30 * 60 * 1000).toISOString());
-
-    await recordSourceHealth(VESSEL_SOURCE, { rows: rows.length });
-    return { source: VESSEL_SOURCE, upserted: rows.length };
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    await recordSourceHealth(VESSEL_SOURCE, { error: message });
-    throw e;
-  }
+    await pruneOlderThan("vessel_positions", "updated_at", POSITION_TTL_MS);
+    return upserted;
+  });
 }
+
