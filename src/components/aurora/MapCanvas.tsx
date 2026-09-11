@@ -101,6 +101,7 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
     });
 
     mapRef.current = map;
+    (window as unknown as Record<string, unknown>)["__auroraMap"] = map;
 
     return () => {
       map.remove();
