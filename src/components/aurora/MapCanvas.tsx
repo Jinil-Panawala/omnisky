@@ -231,7 +231,7 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
 
   return (
     <div className="relative w-full h-full bg-surface-1">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="h-full w-full" />
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface-1 text-console-subtle">
           <div className="flex flex-col items-center gap-3">
