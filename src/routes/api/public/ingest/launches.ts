@@ -86,7 +86,7 @@ function toRow(l: Ll2Launch) {
   };
 }
 
-async function handlePost(request: Request): Promise<Response> {
+async function handlePost({ request }: { request: Request }): Promise<Response> {
   if (!(await authorized(request))) {
     return new Response("Unauthorized", { status: 401 });
   }
