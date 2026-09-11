@@ -5,15 +5,33 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import type { Filters } from "../types";
 
+export interface FilterOption {
+  value: string;
+  count: number;
+}
+
 interface FiltersPanelProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  /** Values present in the current dataset, most common first. */
+  affiliationOptions?: FilterOption[];
+  classificationOptions?: FilterOption[];
 }
 
-const affiliations = ["Civil", "Military", "Government", "Commercial", "Unknown"];
-const classifications = ["Friendly", "Neutral", "Hostile", "Unknown"];
+export function FiltersPanel({
+  filters,
+  onChange,
+  affiliationOptions = [],
+  classificationOptions = [],
+}: FiltersPanelProps) {
+  // Keep any active selection visible even if it vanished from the dataset.
+  const withSelected = (options: FilterOption[], selected: string[]): FilterOption[] => {
+    const known = new Set(options.map((o) => o.value));
+    return [...options, ...selected.filter((s) => !known.has(s)).map((value) => ({ value, count: 0 }))];
+  };
+  const affiliations = withSelected(affiliationOptions, filters.affiliations);
+  const classifications = withSelected(classificationOptions, filters.classifications);
 
-export function FiltersPanel({ filters, onChange }: FiltersPanelProps) {
   const toggleAffiliation = (value: string) => {
     const next = filters.affiliations.includes(value)
       ? filters.affiliations.filter((v) => v !== value)
