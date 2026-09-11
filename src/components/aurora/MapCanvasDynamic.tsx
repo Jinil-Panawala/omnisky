@@ -4,7 +4,7 @@ import type { Entity, LayerVisibility } from "./types";
 interface MapCanvasDynamicProps {
   entities: Entity[];
   layers: LayerVisibility;
-  selectedId?: string | null;
+  selectedId?: string | null | undefined;
   onSelect: (entity: Entity) => void;
 }
 
