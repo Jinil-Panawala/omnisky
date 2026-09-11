@@ -192,6 +192,27 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     <div className="relative h-full w-full bg-surface-1">
       <div ref={containerRef} className="aurora-cesium h-full w-full" />
       <div className="pointer-events-none absolute inset-0 aurora-globe-vignette" />
+      <div className="absolute right-3 top-3 flex overflow-hidden rounded-md border border-console-border bg-surface-1/85 backdrop-blur">
+        {(
+          [
+            { key: "lights", label: "City Lights" },
+            { key: "map", label: "Map" },
+          ] as Array<{ key: BaseMapMode; label: string }>
+        ).map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setBaseMap(opt.key)}
+            className={`px-3 py-1.5 text-[11px] uppercase tracking-wider transition-colors ${
+              baseMap === opt.key
+                ? "bg-primary/20 text-primary"
+                : "text-console-subtle hover:text-console-text"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface-1 text-console-subtle">
           <div className="flex flex-col items-center gap-3">
