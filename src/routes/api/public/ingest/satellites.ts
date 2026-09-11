@@ -59,7 +59,7 @@ function parseTle(text: string, category: string): TleRecord[] {
   return out;
 }
 
-async function handlePost(request: Request): Promise<Response> {
+async function handlePost({ request }: { request: Request }): Promise<Response> {
   if (!(await authorized(request))) {
     return new Response("Unauthorized", { status: 401 });
   }
