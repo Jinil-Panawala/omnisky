@@ -101,7 +101,7 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     scene.screenSpaceCameraController.maximumZoomDistance = 45_000_000;
 
     const handler = new ScreenSpaceEventHandler(scene.canvas);
-    handler.setInputAction((movement: { position: { x: number; y: number } }) => {
+    handler.setInputAction((movement: ScreenSpaceEventHandler.PositionedEvent) => {
       const picked = scene.pick(movement.position);
       const id = picked?.id;
       if (id instanceof CesiumEntity && typeof id.id === "string") {
