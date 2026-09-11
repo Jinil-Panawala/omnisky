@@ -131,7 +131,7 @@ async function collectVessels(apiKey: string): Promise<VesselRow[]> {
   });
 }
 
-async function handlePost(request: Request): Promise<Response> {
+async function handlePost({ request }: { request: Request }): Promise<Response> {
   if (!(await authorized(request))) {
     return new Response("Unauthorized", { status: 401 });
   }
