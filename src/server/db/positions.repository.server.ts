@@ -26,7 +26,9 @@ async function upsertBatched(
   let written = 0;
   for (let i = 0; i < rows.length; i += UPSERT_BATCH) {
     const chunk = rows.slice(i, i + UPSERT_BATCH);
-    const { error } = await supabase.from(table).upsert(chunk, { onConflict });
+    const { error } = await supabase
+      .from(table as never)
+      .upsert(chunk as never, { onConflict });
     if (error) throw new Error(error.message);
     written += chunk.length;
   }
@@ -58,7 +60,7 @@ export async function pruneOlderThan(
 ): Promise<void> {
   const supabase = await getAdminClient();
   await supabase
-    .from(table)
+    .from(table as never)
     .delete()
     .lt(column, new Date(Date.now() - maxAgeMs).toISOString());
 }
