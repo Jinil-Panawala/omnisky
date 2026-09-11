@@ -168,6 +168,7 @@ function Index() {
               selected={selected}
               onClose={() => setSelected(null)}
               onSelectNearby={handleSelectEntity}
+              entities={allEntities}
             />
           </div>
           <div className="hidden xl:flex w-72 shrink-0 flex-col border-l border-console-border">

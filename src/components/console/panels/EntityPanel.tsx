@@ -8,6 +8,7 @@ interface EntityPanelProps {
   selected: SelectedEntity;
   onClose: () => void;
   onSelectNearby: (entity: Entity) => void;
+  entities?: Entity[];
 }
 
 function formatTime(date: Date) {
@@ -28,7 +29,7 @@ function RiskBar({ score }: { score: number }) {
   );
 }
 
-export function EntityPanel({ selected, onClose, onSelectNearby }: EntityPanelProps) {
+export function EntityPanel({ selected, onClose, onSelectNearby, entities }: EntityPanelProps) {
   if (!selected) {
     return (
       <div className="w-80 flex flex-col items-center justify-center gap-3 p-6 bg-console-panel border-l border-console-border text-center">
@@ -39,7 +40,11 @@ export function EntityPanel({ selected, onClose, onSelectNearby }: EntityPanelPr
   }
 
   const { entity } = selected;
-  const nearby = getNearbyEntities(entity, 4);
+  const pool =
+    entities && entities.length > 0
+      ? entities
+      : [...mockDataset.aircraft, ...mockDataset.ships, ...mockDataset.satellites, ...mockDataset.launches];
+  const nearby = getNearbyEntities(entity, 4, pool);
 
   const typeIcon = {
     aircraft: Plane,
@@ -205,12 +210,7 @@ export function EntityPanel({ selected, onClose, onSelectNearby }: EntityPanelPr
                 <button
                   key={n.id}
                   onClick={() => {
-                    const found = [
-                      ...mockDataset.aircraft,
-                      ...mockDataset.ships,
-                      ...mockDataset.satellites,
-                      ...mockDataset.launches,
-                    ].find((e) => e.id === n.id);
+                    const found = pool.find((e) => e.id === n.id);
                     if (found) onSelectNearby(found);
                   }}
                   className="w-full flex items-center justify-between p-2 rounded-md bg-console-bg border border-console-border-subtle hover:border-primary/50 transition-colors text-left"
