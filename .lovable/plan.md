@@ -62,3 +62,8 @@ Timestamps are generated relative to load time so the console always looks curre
 ## Not in this step
 
 Live ADSB / AIS / TLE / launch data, scheduled ingestion, realtime subscriptions, 3D globe mode, and working search — all follow once the interface is approved.
+
+## GitHub sync
+
+Connect the project to a GitHub repository via Lovable's Git sync (Plus menu → GitHub → Connect project) so the codebase pushes to a remote repo. This is a UI-driven step and happens after the initial interface is built.
+
