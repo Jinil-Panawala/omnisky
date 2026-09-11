@@ -85,9 +85,11 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     scene.globe.baseColor = Color.fromCssColorString("#04070f");
     scene.globe.showGroundAtmosphere = true;
     scene.globe.enableLighting = false;
-    scene.skyAtmosphere.hueShift = -0.05;
-    scene.skyAtmosphere.saturationShift = -0.1;
-    scene.skyAtmosphere.brightnessShift = -0.35;
+    if (scene.skyAtmosphere) {
+      scene.skyAtmosphere.hueShift = -0.05;
+      scene.skyAtmosphere.saturationShift = -0.1;
+      scene.skyAtmosphere.brightnessShift = -0.35;
+    }
     scene.fog.enabled = false;
     scene.highDynamicRange = false;
     viewer.cesiumWidget.creditContainer.setAttribute("style", "display:none");
