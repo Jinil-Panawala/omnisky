@@ -91,16 +91,23 @@ export function FiltersPanel({
 
       <div className="space-y-2">
         <Label className="text-[10px] uppercase tracking-wider text-console-dim">Affiliation</Label>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          {affiliations.length === 0 && (
+            <p className="text-[10px] font-mono text-console-dim">No values in view</p>
+          )}
           {affiliations.map((aff) => (
-            <div key={aff} className="flex items-center gap-2">
+            <div key={aff.value} className="flex items-center gap-2">
               <Checkbox
-                id={`aff-${aff}`}
-                checked={filters.affiliations.includes(aff)}
-                onCheckedChange={() => toggleAffiliation(aff)}
+                id={`aff-${aff.value}`}
+                checked={filters.affiliations.includes(aff.value)}
+                onCheckedChange={() => toggleAffiliation(aff.value)}
               />
-              <Label htmlFor={`aff-${aff}`} className="text-xs text-console-text cursor-pointer">
-                {aff}
+              <Label
+                htmlFor={`aff-${aff.value}`}
+                className="flex-1 flex items-center justify-between gap-2 text-xs text-console-text cursor-pointer"
+              >
+                <span className="truncate">{aff.value}</span>
+                <span className="text-[10px] font-mono text-console-dim">{aff.count}</span>
               </Label>
             </div>
           ))}
@@ -109,16 +116,23 @@ export function FiltersPanel({
 
       <div className="space-y-2">
         <Label className="text-[10px] uppercase tracking-wider text-console-dim">Classification</Label>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          {classifications.length === 0 && (
+            <p className="text-[10px] font-mono text-console-dim">No values in view</p>
+          )}
           {classifications.map((cls) => (
-            <div key={cls} className="flex items-center gap-2">
+            <div key={cls.value} className="flex items-center gap-2">
               <Checkbox
-                id={`cls-${cls}`}
-                checked={filters.classifications.includes(cls)}
-                onCheckedChange={() => toggleClassification(cls)}
+                id={`cls-${cls.value}`}
+                checked={filters.classifications.includes(cls.value)}
+                onCheckedChange={() => toggleClassification(cls.value)}
               />
-              <Label htmlFor={`cls-${cls}`} className="text-xs text-console-text cursor-pointer">
-                {cls}
+              <Label
+                htmlFor={`cls-${cls.value}`}
+                className="flex-1 flex items-center justify-between gap-2 text-xs text-console-text cursor-pointer"
+              >
+                <span className="truncate">{cls.value}</span>
+                <span className="text-[10px] font-mono text-console-dim">{cls.count}</span>
               </Label>
             </div>
           ))}
