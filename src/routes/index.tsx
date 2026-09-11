@@ -68,7 +68,7 @@ function Index() {
   });
 
   const [selected, setSelected] = useState<SelectedEntity>(null);
-  const [mode, setMode] = useState<DataMode>("demo");
+  const [mode, setMode] = useState<DataMode>("live");
   const [view, setView] = useState<GlobeViewState>({ bounds: null, heightM: 24_000_000 });
 
   // Side panels can be hidden to give the map the full width.
