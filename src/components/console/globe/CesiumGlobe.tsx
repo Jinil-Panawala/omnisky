@@ -31,6 +31,7 @@ import {
   type RenderStats,
   type ViewportBounds,
 } from "@/lib/geo/spatial";
+import { MotionStore, type MotionInput } from "@/lib/geo/motion";
 
 export interface GlobeViewState extends CameraView {}
 
