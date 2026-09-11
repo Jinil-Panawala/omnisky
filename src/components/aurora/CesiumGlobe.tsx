@@ -32,7 +32,8 @@ const entityColors: Record<EntityType, string> = {
 
 const NIGHT_LIGHTS =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg";
-const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png";
+const DARK_LABELS =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
 const STREET_MAP =
   "https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png";
 
@@ -100,8 +101,8 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     const labels = viewer.imageryLayers.addImageryProvider(
       new UrlTemplateImageryProvider({
         url: DARK_LABELS,
-        maximumLevel: 14,
-        credit: "© OpenStreetMap contributors, © CARTO",
+        maximumLevel: 16,
+        credit: "Esri",
       })
     );
     labels.alpha = 0.95;
