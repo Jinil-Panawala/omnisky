@@ -4,7 +4,7 @@
 // This module is deliberately renderer-agnostic so the globe engine (currently
 // Cesium) can be swapped or extended with vector tiles later without touching
 // the React UI.
-import type { Entity, EntityType } from "@/data/mock/types";
+import type { Entity, EntityType } from "@/domain/entities";
 
 /** Normalized object model shared by every renderer/back-end. */
 export interface TrackedObject {

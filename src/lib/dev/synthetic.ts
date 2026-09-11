@@ -1,6 +1,6 @@
 // Synthetic large dataset used to prove the globe scales. Enabled with the
 // `?stress=1` URL flag (optionally `?stress=1&aircraft=20000&ships=20000&sats=5000`).
-import type { AircraftEntity, Entity, SatelliteEntity, ShipEntity } from "@/data/mock/types";
+import type { AircraftEntity, Entity, SatelliteEntity, ShipEntity } from "@/domain/entities";
 
 // Deterministic PRNG so repeated runs are comparable.
 function mulberry32(seed: number) {

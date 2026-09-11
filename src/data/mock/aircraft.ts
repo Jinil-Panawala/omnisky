@@ -1,4 +1,4 @@
-import type { AircraftEntity } from "./types";
+import type { AircraftEntity } from "@/domain/entities";
 
 function makeAircraft(
   icao24: string,

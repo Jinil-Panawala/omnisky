@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { runIngestRoute } from "@/lib/ingest/http.server";
-import { ingestAircraft } from "@/lib/ingest/adsb.server";
+import { runIngestRoute } from "@/server/ingest/http.server";
+import { ingestAircraft } from "@/server/ingest/adsb.server";
 
 async function handle({ request }: { request: Request }): Promise<Response> {
   return runIngestRoute(request, ingestAircraft);

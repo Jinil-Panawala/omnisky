@@ -220,7 +220,7 @@ export const getObjectTrack = createServerFn({ method: "GET" })
  */
 export const refreshLiveFeeds = createServerFn({ method: "POST" }).handler(
   async (): Promise<{ aircraft: number | null; vessels: number | null }> => {
-    const { secondsSinceSuccess } = await import("@/lib/ingest/shared.server");
+    const { secondsSinceSuccess } = await import("@/server/ingest/shared.server");
     const MIN_INTERVAL_S = 25;
 
     const result: { aircraft: number | null; vessels: number | null } = {
@@ -231,7 +231,7 @@ export const refreshLiveFeeds = createServerFn({ method: "POST" }).handler(
     const aircraftAge = await secondsSinceSuccess("adsb.lol");
     if (aircraftAge === null || aircraftAge > MIN_INTERVAL_S) {
       try {
-        const { ingestAircraft } = await import("@/lib/ingest/adsb.server");
+        const { ingestAircraft } = await import("@/server/ingest/adsb.server");
         result.aircraft = (await ingestAircraft()).upserted;
       } catch (e) {
         console.error("on-demand aircraft ingest failed", e);
@@ -241,7 +241,7 @@ export const refreshLiveFeeds = createServerFn({ method: "POST" }).handler(
     const vesselAge = await secondsSinceSuccess("aisstream");
     if (vesselAge === null || vesselAge > MIN_INTERVAL_S) {
       try {
-        const { ingestVessels } = await import("@/lib/ingest/aisstream.server");
+        const { ingestVessels } = await import("@/server/ingest/aisstream.server");
         result.vessels = (await ingestVessels()).upserted;
       } catch (e) {
         console.error("on-demand vessel ingest failed", e);

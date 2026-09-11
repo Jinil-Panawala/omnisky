@@ -6,13 +6,13 @@ import type {
   LaunchEntity,
   SatelliteEntity,
   ShipEntity,
-} from "@/data/mock/types";
+} from "@/domain/entities";
 import type {
   AircraftSnapshotRow,
   LaunchSnapshotRow,
   SatelliteSnapshotRow,
   VesselSnapshotRow,
-} from "@/lib/live.functions";
+} from "@/api/live.functions";
 
 export const SOURCE_ATTRIBUTION = [
   { label: "ADSB.lol", href: "https://adsb.lol", scope: "Aircraft" },

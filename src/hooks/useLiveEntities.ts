@@ -6,14 +6,14 @@ import {
   refreshLiveFeeds,
   type LiveSnapshot,
   type SourceHealthRow,
-} from "@/lib/live.functions";
+} from "@/api/live.functions";
 import {
   aircraftFromRow,
   launchFromRow,
   satelliteFromRow,
   vesselFromRow,
-} from "@/lib/entities/canonical";
-import type { Entity, SatelliteEntity, TimelineEvent } from "@/data/mock/types";
+} from "@/lib/live/adapters";
+import type { Entity, SatelliteEntity, TimelineEvent } from "@/domain/entities";
 
 const SNAPSHOT_INTERVAL_MS = 20000;
 const REFRESH_INTERVAL_MS = 30000;
