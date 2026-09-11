@@ -3,6 +3,7 @@ export { TopBar } from "./layout/TopBar";
 export { CounterStrip } from "./layout/CounterStrip";
 export { ControlPanel } from "./layout/ControlPanel";
 export { FiltersPanel } from "./layout/FiltersPanel";
+export { PanelToggles, type PanelVisibility } from "./layout/PanelToggles";
 
 export { MapCanvasDynamic } from "./globe/MapCanvasDynamic";
 export { entityIconUrl } from "./globe/entity-icons";

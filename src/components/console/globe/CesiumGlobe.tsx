@@ -31,6 +31,7 @@ import {
   type RenderStats,
   type ViewportBounds,
 } from "@/lib/geo/spatial";
+import { MotionStore, type MotionInput } from "@/lib/geo/motion";
 
 export interface GlobeViewState extends CameraView {}
 
@@ -86,6 +87,16 @@ export function CesiumGlobe({
   const onViewChangeRef = useRef(onViewChange);
   const labelsLayerRef = useRef<ImageryLayer | null>(null);
   const streetLayerRef = useRef<ImageryLayer | null>(null);
+  // Smoothed movement: display positions eased/dead-reckoned between fixes.
+  const motionRef = useRef(new MotionStore());
+  const animatedRef = useRef<
+    Array<{
+      id: string;
+      heightM: number;
+      billboard: { position: Cartesian3 };
+      label?: { position: Cartesian3 } | undefined;
+    }>
+  >([]);
 
   const [ready, setReady] = useState(false);
   const [baseMap, setBaseMap] = useState<BaseMapMode>("lights");
@@ -272,6 +283,25 @@ export function CesiumGlobe({
     };
     scene.postRender.addEventListener(onPostRender);
 
+    // Smooth movement: ease + dead-reckon rendered objects every frame instead
+    // of teleporting them when a new fix arrives.
+    let lastMotion = 0;
+    const onPreRender = () => {
+      const now = performance.now();
+      if (now - lastMotion < 33) return;
+      lastMotion = now;
+      const motion = motionRef.current;
+      motion.tick(now);
+      for (const item of animatedRef.current) {
+        const pos = motion.sample(item.id);
+        if (!pos) continue;
+        const cart = Cartesian3.fromDegrees(pos.lon, pos.lat, item.heightM);
+        item.billboard.position = cart;
+        if (item.label) item.label.position = cart;
+      }
+    };
+    scene.preRender.addEventListener(onPreRender);
+
     viewerRef.current = viewer;
     setReady(true);
     const initial = readCameraView(viewer);
@@ -282,6 +312,9 @@ export function CesiumGlobe({
       if (cameraTimer) clearTimeout(cameraTimer);
       if (hoverTimer) clearTimeout(hoverTimer);
       scene.postRender.removeEventListener(onPostRender);
+      scene.preRender.removeEventListener(onPreRender);
+      animatedRef.current = [];
+      motionRef.current.clear();
       handler.destroy();
       viewer.destroy();
       viewerRef.current = null;
@@ -305,6 +338,33 @@ export function CesiumGlobe({
 
   useEffect(() => setStats(renderSet.stats), [renderSet]);
 
+  // Feed the latest fixes into the motion store (targets, not drawn positions).
+  useEffect(() => {
+    const inputs: MotionInput[] = entities.map((e) => {
+      if (e.type === "aircraft") {
+        return {
+          id: e.id,
+          lat: e.lat,
+          lon: e.lon,
+          headingDeg: e.headingDeg ?? null,
+          speedMs: e.velocityMs ?? null,
+        };
+      }
+      if (e.type === "ship") {
+        return {
+          id: e.id,
+          lat: e.lat,
+          lon: e.lon,
+          headingDeg: e.courseDeg ?? e.headingDeg ?? null,
+          speedMs: e.speedKn != null ? e.speedKn * 0.514444 : null,
+        };
+      }
+      // Satellites are propagated upstream; launches don't move.
+      return { id: e.id, lat: e.lat, lon: e.lon, extrapolate: false };
+    });
+    motionRef.current.sync(inputs);
+  }, [entities]);
+
   // Push the render set into the WebGL collections.
   useEffect(() => {
     const billboards = billboardsRef.current;
@@ -316,14 +376,21 @@ export function CesiumGlobe({
     billboards.removeAll();
     clusters.removeAll();
     labelCollection.removeAll();
+    const animated: typeof animatedRef.current = [];
 
     for (const point of renderSet.points) {
       const e = point.entity;
       const isSelected = e.id === selectedId;
       const heightM = e.type === "satellite" ? 550_000 : e.type === "aircraft" ? 10_000 : 0;
       const size = isSelected ? 44 : point.priority >= 2 ? 36 : 30;
-      billboards.add({
-        position: Cartesian3.fromDegrees(e.lon, e.lat, heightM),
+      const smoothed = motionRef.current.sample(e.id);
+      const position = Cartesian3.fromDegrees(
+        smoothed?.lon ?? e.lon,
+        smoothed?.lat ?? e.lat,
+        heightM,
+      );
+      const billboard = billboards.add({
+        position,
         image: entityIconUrl(e.type, entityColors[e.type], isSelected),
         width: size,
         height: size,
@@ -331,9 +398,10 @@ export function CesiumGlobe({
         id: { kind: "entity", id: e.id } satisfies PickPayload,
       });
 
+      let label: { position: Cartesian3 } | undefined;
       if (shouldLabel(point, lod, selectedId, hoveredId)) {
-        labelCollection.add({
-          position: Cartesian3.fromDegrees(e.lon, e.lat, heightM),
+        label = labelCollection.add({
+          position,
           text: e.name,
           font: "500 11px ui-monospace, SFMono-Regular, monospace",
           fillColor: Color.fromCssColorString(isSelected ? "#e2e8f0" : entityColors[e.type]),
@@ -346,7 +414,13 @@ export function CesiumGlobe({
           distanceDisplayCondition: new DistanceDisplayCondition(0, 40_000_000),
         });
       }
+
+      if (e.type !== "launch") {
+        animated.push({ id: e.id, heightM, billboard, label });
+      }
     }
+
+    animatedRef.current = animated;
 
     for (const cluster of renderSet.clusters) {
       const bucket = cluster.count >= 500 ? 2 : cluster.count >= 50 ? 1 : 0;

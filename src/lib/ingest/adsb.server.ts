@@ -7,11 +7,12 @@ import {
   type IngestResult,
 } from "./shared.server";
 
-// The global /v2/all snapshot is frequently rate-limited, so sample the busiest
-// regions with radius queries (250 nm cap per query) and merge the results.
+// The global /v2/all snapshot is frequently rate-limited, so sample the world
+// with radius queries (250 nm cap per query) and merge the results. Coverage
+// still depends on volunteer ground receivers, so mid-ocean gaps remain where
+// no receiver can hear an aircraft.
 const REGIONS: Array<[number, number]> = [
-  [51.5, -0.1], // London
-  [50.0, 8.6], // Frankfurt
+  // North America
   [40.6, -73.8], // New York
   [33.9, -118.4], // Los Angeles
   [41.9, -87.9], // Chicago
@@ -19,20 +20,70 @@ const REGIONS: Array<[number, number]> = [
   [25.8, -80.3], // Miami
   [37.6, -122.4], // San Francisco
   [43.7, -79.6], // Toronto
+  [39.8, -104.7], // Denver
+  [47.5, -122.3], // Seattle
   [19.4, -99.1], // Mexico City
-  [-23.5, -46.6], // Sao Paulo
+  [21.3, -157.9], // Honolulu
+  [61.2, -149.9], // Anchorage
+  // North Atlantic corridor
+  [47.6, -52.7], // Gander / NL
+  [44.9, -63.5], // Halifax
+  [64.1, -21.9], // Reykjavik
+  [61.6, -6.8], // Faroe Islands
+  [52.7, -8.9], // Shannon
+  [37.7, -25.7], // Azores
+  [32.4, -64.7], // Bermuda
+  [64.2, -51.7], // Nuuk
+  [18.4, -66.0], // San Juan
+  // Europe
+  [51.5, -0.1], // London
+  [50.0, 8.6], // Frankfurt
   [40.5, -3.6], // Madrid
+  [41.9, 12.5], // Rome
+  [59.6, 17.9], // Stockholm
+  [52.3, 4.8], // Amsterdam
+  [37.9, 23.7], // Athens
   [55.7, 37.6], // Moscow
-  [25.3, 55.4], // Dubai
-  [28.6, 77.1], // Delhi
-  [1.36, 103.99], // Singapore
-  [35.6, 139.8], // Tokyo
-  [31.2, 121.5], // Shanghai
-  [-33.9, 151.2], // Sydney
+  [41.0, 28.8], // Istanbul
+  // Africa & Middle East
+  [30.1, 31.4], // Cairo
+  [6.6, 3.3], // Lagos
+  [-1.3, 36.9], // Nairobi
   [-26.1, 28.2], // Johannesburg
+  [-33.9, 18.6], // Cape Town
+  [25.3, 55.4], // Dubai
+  [24.7, 46.7], // Riyadh
+  // Asia
+  [28.6, 77.1], // Delhi
+  [19.1, 72.9], // Mumbai
+  [13.7, 100.7], // Bangkok
+  [1.36, 103.99], // Singapore
+  [-6.1, 106.7], // Jakarta
+  [22.3, 114.2], // Hong Kong
+  [31.2, 121.5], // Shanghai
+  [39.5, 116.4], // Beijing
+  [37.5, 126.8], // Seoul
+  [35.6, 139.8], // Tokyo
+  [14.5, 121.0], // Manila
+  // Oceania & South America
+  [-33.9, 151.2], // Sydney
+  [-37.7, 144.8], // Melbourne
+  [-36.9, 174.8], // Auckland
+  [-18.1, 178.4], // Fiji
+  [-23.5, -46.6], // Sao Paulo
+  [-34.8, -58.5], // Buenos Aires
+  [-12.0, -77.1], // Lima
+  [4.7, -74.1], // Bogota
+  [-33.4, -70.8], // Santiago
 ];
 const REGION_RADIUS_NM = 250;
-const MAX_AIRCRAFT = 5000;
+const MAX_AIRCRAFT = 20000;
+// ADSB.lol rate-limits bursts hard (429 after a handful of calls), so each pull
+// covers a rotating slice of the world and positions are kept until they age
+// out — a few pulls in, the whole map is populated.
+const REGIONS_PER_PULL = 3;
+const REGION_PACE_MS = 2000;
+const POSITION_TTL_MS = 30 * 60 * 1000;
 const BATCH = 500;
 export const AIRCRAFT_SOURCE = "adsb.lol";
 
@@ -53,7 +104,6 @@ function normalise(raw: Array<Record<string, unknown>>): AircraftRow[] {
   const now = new Date().toISOString();
   const rows = raw
     .filter((a) => validCoord(a["lat"], a["lon"]))
-    .slice(0, MAX_AIRCRAFT)
     .map((a) => ({
       icao24: String(a["hex"] ?? "").trim(),
       callsign:
@@ -76,10 +126,12 @@ function normalise(raw: Array<Record<string, unknown>>): AircraftRow[] {
       updated_at: now,
     }))
     .filter((r) => r.icao24.length > 0);
-  return dedupe(rows, (r) => r.icao24);
+  return dedupe(rows, (r) => r.icao24).slice(0, MAX_AIRCRAFT);
 }
 
-async function fetchRegion(
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchRegionOnce(
   lat: number,
   lon: number,
 ): Promise<Array<Record<string, unknown>>> {
@@ -100,21 +152,39 @@ async function fetchRegion(
   return data.ac ?? [];
 }
 
+/** The courtesy API throttles bursts, so back off once on failure. */
+async function fetchRegion(
+  lat: number,
+  lon: number,
+): Promise<Array<Record<string, unknown>>> {
+  try {
+    return await fetchRegionOnce(lat, lon);
+  } catch {
+    await sleep(2000);
+    return fetchRegionOnce(lat, lon);
+  }
+}
+
+/** Rotate through the region list so consecutive pulls cover the whole globe. */
+function regionSlice(): Array<[number, number]> {
+  const groups = Math.ceil(REGIONS.length / REGIONS_PER_PULL);
+  const group = Math.floor(Date.now() / 30000) % groups;
+  const start = group * REGIONS_PER_PULL;
+  return REGIONS.slice(start, start + REGIONS_PER_PULL);
+}
+
 export async function ingestAircraft(): Promise<IngestResult> {
   try {
     const raw: Array<Record<string, unknown>> = [];
     const failures: string[] = [];
-    const CONCURRENCY = 5;
-    for (let i = 0; i < REGIONS.length; i += CONCURRENCY) {
-      const results = await Promise.allSettled(
-        REGIONS.slice(i, i + CONCURRENCY).map(([lat, lon]) =>
-          fetchRegion(lat, lon),
-        ),
-      );
-      for (const r of results) {
-        if (r.status === "fulfilled") raw.push(...r.value);
-        else failures.push(String(r.reason));
+    const slice = regionSlice();
+    for (const [lat, lon] of slice) {
+      try {
+        raw.push(...(await fetchRegion(lat, lon)));
+      } catch (e) {
+        failures.push(String(e));
       }
+      await sleep(REGION_PACE_MS);
     }
     if (raw.length === 0) {
       throw new Error(
@@ -156,7 +226,7 @@ export async function ingestAircraft(): Promise<IngestResult> {
     await supabaseAdmin
       .from("aircraft_positions")
       .delete()
-      .lt("updated_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+      .lt("updated_at", new Date(Date.now() - POSITION_TTL_MS).toISOString());
 
     await recordSourceHealth(AIRCRAFT_SOURCE, { rows: upserted });
     return { source: AIRCRAFT_SOURCE, upserted };

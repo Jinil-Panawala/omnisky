@@ -22,7 +22,9 @@ import {
   AlertsPanel,
   AiInsights,
   MapCanvasDynamic,
+  PanelToggles,
 } from "@/components/console";
+import type { PanelVisibility } from "@/components/console";
 import type { LayerVisibility, Filters, SelectedEntity } from "@/components/console";
 
 export const Route = createFileRoute("/")({
@@ -68,6 +70,18 @@ function Index() {
   const [selected, setSelected] = useState<SelectedEntity>(null);
   const [mode, setMode] = useState<DataMode>("demo");
   const [view, setView] = useState<GlobeViewState>({ bounds: null, heightM: 24_000_000 });
+
+  // Side panels can be hidden to give the map the full width.
+  const [panels, setPanels] = useState<PanelVisibility>({
+    filters: true,
+    alerts: true,
+    feed: true,
+    details: true,
+  });
+  const togglePanel = useCallback((key: keyof PanelVisibility) => {
+    setPanels((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
 
   // Dev/QA flags: ?stress=1 loads a synthetic 45k-object dataset, ?stats=1 shows metrics.
   const [flags, setFlags] = useState<{ stress: boolean; stats: boolean; counts: number[] }>({
@@ -211,12 +225,19 @@ function Index() {
           feedStatus={live.status}
           lastUpdated={live.lastUpdated}
         />
-        <CounterStrip counts={counts} />
+        <div className="flex items-center border-b border-console-border bg-console-bg">
+          <div className="flex-1 min-w-0">
+            <CounterStrip counts={counts} />
+          </div>
+          <PanelToggles panels={panels} onToggle={togglePanel} />
+        </div>
         <div className="flex flex-1 min-h-0">
           <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
-          <div className="hidden lg:flex shrink-0">
-            <FiltersPanel filters={filters} onChange={setFilters} />
-          </div>
+          {panels.filters && (
+            <div className="hidden lg:flex shrink-0">
+              <FiltersPanel filters={filters} onChange={setFilters} />
+            </div>
+          )}
           <div className="flex-1 min-w-[360px] relative">
             <MapCanvasDynamic
               entities={filteredEntities}
@@ -229,28 +250,34 @@ function Index() {
               dataLoading={mode === "live" && live.fetching}
             />
           </div>
-          <div className="hidden 2xl:flex shrink-0">
-            <EntityPanel
-              selected={selected}
-              onClose={() => setSelected(null)}
-              onSelectNearby={handleSelectEntity}
-              entities={allEntities}
-            />
-          </div>
-          <div className="hidden xl:flex w-72 shrink-0 flex-col border-l border-console-border">
-            <div className="flex-1 min-h-0">
-              <AlertsPanel alerts={mockDataset.alerts} onSelect={(id) => handleSelectById(id)} />
+          {panels.details && (
+            <div className="hidden 2xl:flex shrink-0">
+              <EntityPanel
+                selected={selected}
+                onClose={() => setSelected(null)}
+                onSelectNearby={handleSelectEntity}
+                entities={allEntities}
+              />
             </div>
-            <div className="flex-1 min-h-0 border-t border-console-border">
-              <AiInsights insights={mockDataset.insights} />
+          )}
+          {panels.alerts && (
+            <div className="hidden xl:flex w-72 shrink-0 flex-col border-l border-console-border">
+              <div className="flex-1 min-h-0">
+                <AlertsPanel alerts={mockDataset.alerts} onSelect={(id) => handleSelectById(id)} />
+              </div>
+              <div className="flex-1 min-h-0 border-t border-console-border">
+                <AiInsights insights={mockDataset.insights} />
+              </div>
             </div>
-          </div>
-          <div className="hidden xl:block w-80 shrink-0">
-            <TimelineFeed
-              events={mode === "live" ? live.events : mockDataset.events}
-              onSelect={handleSelectById}
-            />
-          </div>
+          )}
+          {panels.feed && (
+            <div className="hidden xl:block w-80 shrink-0">
+              <TimelineFeed
+                events={mode === "live" ? live.events : mockDataset.events}
+                onSelect={handleSelectById}
+              />
+            </div>
+          )}
         </div>
         <footer className="h-6 shrink-0 flex items-center gap-3 px-4 border-t border-console-border bg-console-panel overflow-x-auto">
           <span className="text-[10px] font-mono uppercase tracking-wider text-console-dim shrink-0">

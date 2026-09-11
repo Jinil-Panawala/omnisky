@@ -17,7 +17,7 @@ import type { Entity, SatelliteEntity, TimelineEvent } from "@/data/mock/types";
 
 const SNAPSHOT_INTERVAL_MS = 20000;
 const REFRESH_INTERVAL_MS = 30000;
-const PROPAGATE_INTERVAL_MS = 5000;
+const PROPAGATE_INTERVAL_MS = 1500;
 
 export type FeedStatus = "connecting" | "live" | "stale" | "error";
 
