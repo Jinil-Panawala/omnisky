@@ -1,5 +1,5 @@
 import { Clock, Bookmark, Plane, Ship, Satellite, Rocket, AlertTriangle } from "lucide-react";
-import type { TimelineEvent, EntityType } from "./types";
+import type { TimelineEvent, EntityType } from "../types";
 
 interface TimelineFeedProps {
   events: TimelineEvent[];

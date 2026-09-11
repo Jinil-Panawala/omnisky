@@ -2,7 +2,7 @@ import { X, Plane, Ship, Satellite, Rocket, AlertTriangle, Navigation, Activity,
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { mockDataset, getNearbyEntities } from "@/data/mock";
-import type { Entity, SelectedEntity } from "./types";
+import type { Entity, SelectedEntity } from "../types";
 
 interface EntityPanelProps {
   selected: SelectedEntity;

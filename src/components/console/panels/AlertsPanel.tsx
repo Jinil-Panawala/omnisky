@@ -1,5 +1,5 @@
 import { AlertTriangle, ShieldAlert, Info } from "lucide-react";
-import type { ActiveAlert } from "./types";
+import type { ActiveAlert } from "../types";
 
 interface AlertsPanelProps {
   alerts: ActiveAlert[];
