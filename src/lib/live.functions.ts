@@ -101,18 +101,18 @@ export const getLiveSnapshot = createServerFn({ method: "GET" }).handler(
           "icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at",
         )
         .order("updated_at", { ascending: false })
-        .limit(AIRCRAFT_LIMIT),
+        .range(0, AIRCRAFT_LIMIT - 1),
       supabase
         .from("vessel_positions")
         .select(
           "mmsi, ship_name, lat, lon, speed_kn, course_deg, heading_deg, ship_type, updated_at",
         )
         .order("updated_at", { ascending: false })
-        .limit(VESSEL_LIMIT),
+        .range(0, VESSEL_LIMIT - 1),
       supabase
         .from("satellite_tles")
         .select("norad_id, name, tle_line1, tle_line2, category, updated_at")
-        .limit(SATELLITE_LIMIT),
+        .range(0, SATELLITE_LIMIT - 1),
       supabase
         .from("launches")
         .select(
