@@ -1,11 +1,13 @@
 // ADSB.lol adapter + processing pass for aircraft.
 // Free, keyless, courtesy API. Attribution required; coverage is not complete.
+import { dedupe, POSITION_TTL_MS, validCoord } from "@/domain/ingest";
+import type { IngestResult } from "@/domain/live";
 import {
-  dedupe,
-  recordSourceHealth,
-  validCoord,
-  type IngestResult,
-} from "./shared.server";
+  insertPositionHistory,
+  pruneOlderThan,
+  upsertAircraftPositions,
+} from "@/server/db/positions.repository.server";
+import { runIngest } from "./run.server";
 
 // The global /v2/all snapshot is frequently rate-limited, so sample the world
 // with radius queries (250 nm cap per query) and merge the results. Coverage
