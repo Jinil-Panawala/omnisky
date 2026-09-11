@@ -47,6 +47,16 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
       container: mapContainer.current,
       style: {
         version: 8,
+        projection: { type: "globe" },
+        sky: {
+          "sky-color": "#050a18",
+          "sky-horizon-blend": 0.5,
+          "horizon-color": "#0b1a35",
+          "horizon-fog-blend": 0.6,
+          "fog-color": "#0b1020",
+          "fog-ground-blend": 0.1,
+        },
+        light: { anchor: "map", intensity: 0.2 },
         sources: {
           "dark-matter": {
             type: "raster",
