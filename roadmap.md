@@ -9,6 +9,7 @@
 - [x] Scalable rendering: WebGL primitive collections, zoom LOD, grid clustering, priority budget, dev perf overlay
 - [x] Viewport-scoped snapshot queries + lat/lon indexes; selected-object trail from position_history
 - [ ] Smooth interpolated movement between position updates (dead-reckoning, no teleporting)
+- [ ] Collapsible side/bottom panels (alerts, filters, event feed) to expand the map
 - [ ] Server-side clustering / vector tiles for datasets beyond the per-viewport row budget
 - [ ] Watchlists and alert-driven priority
 - [ ] Entity trails / history playback from position_history
