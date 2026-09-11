@@ -35,7 +35,7 @@ const NIGHT_LIGHTS =
 const DARK_LABELS =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
 const STREET_MAP =
-  "https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png";
+  "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 type BaseMapMode = "lights" | "map";
 
