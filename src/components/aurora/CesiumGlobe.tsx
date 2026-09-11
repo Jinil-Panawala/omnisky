@@ -35,7 +35,7 @@ const NIGHT_LIGHTS =
 const DARK_LABELS =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
 const STREET_MAP =
-  "https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png";
+  "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 type BaseMapMode = "lights" | "map";
 
@@ -89,7 +89,7 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
       new UrlTemplateImageryProvider({
         url: STREET_MAP,
         maximumLevel: 18,
-        credit: "© OpenStreetMap contributors, © CARTO",
+        credit: "© OpenStreetMap contributors",
       })
     );
     street.show = false;
