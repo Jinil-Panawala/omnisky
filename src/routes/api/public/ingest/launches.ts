@@ -1,11 +1,49 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 
-// Launch Library 2: upcoming + recent rocket launches -> launches table.
-const UPCOMING_URL =
-  "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=60&mode=detailed";
-const PREVIOUS_URL =
-  "https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=20&mode=detailed";
+// Launch Library 2 upcoming + previous launches -> upsert launch events.
+const UPCOMING_URL = "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=100";
+const PREVIOUS_URL = "https://ll.thespacedevs.com/2.2.0/launch/previous/?limit=50";
+
+interface Ll2Status {
+  name?: string;
+  abbrev?: string;
+}
+
+interface Ll2Pad {
+  name?: string;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+}
+
+interface Ll2RocketConfig {
+  name?: string;
+  full_name?: string;
+}
+
+interface Ll2Rocket {
+  configuration?: Ll2RocketConfig;
+}
+
+interface Ll2Mission {
+  name?: string;
+}
+
+interface Ll2Provider {
+  name?: string;
+}
+
+interface Ll2Launch {
+  id?: string;
+  name?: string;
+  rocket?: Ll2Rocket;
+  mission?: Ll2Mission;
+  launch_service_provider?: Ll2Provider;
+  pad?: Ll2Pad;
+  window_start?: string;
+  window_end?: string;
+  status?: Ll2Status;
+}
 
 async function authorized(request: Request): Promise<boolean> {
   const cronDeny = await authenticateCronRequest(request);
@@ -19,24 +57,22 @@ async function authorized(request: Request): Promise<boolean> {
   );
 }
 
-interface Ll2Launch {
-  id: string;
-  name: string;
-  window_start?: string | null;
-  window_end?: string | null;
-  status?: { name?: string; abbrev?: string };
-  rocket?: { configuration?: { full_name?: string; name?: string } };
-  mission?: { name?: string; description?: string };
-  launch_service_provider?: { name?: string };
-  pad?: { name?: string; latitude?: string | null; longitude?: string | null };
-}
-
 function toRow(l: Ll2Launch) {
-  const lat = l.pad?.latitude ? Number(l.pad.latitude) : null;
-  const lon = l.pad?.longitude ? Number(l.pad.longitude) : null;
+  const lat =
+    typeof l.pad?.latitude === "number"
+      ? l.pad.latitude
+      : typeof l.pad?.latitude === "string"
+        ? parseFloat(l.pad.latitude)
+        : null;
+  const lon =
+    typeof l.pad?.longitude === "number"
+      ? l.pad.longitude
+      : typeof l.pad?.longitude === "string"
+        ? parseFloat(l.pad.longitude)
+        : null;
   return {
-    id: l.id,
-    name: l.name,
+    id: l.id ?? crypto.randomUUID(),
+    name: l.name ?? "Unknown launch",
     rocket: l.rocket?.configuration?.full_name ?? l.rocket?.configuration?.name ?? null,
     mission: l.mission?.name ?? null,
     provider: l.launch_service_provider?.name ?? null,
@@ -50,56 +86,57 @@ function toRow(l: Ll2Launch) {
   };
 }
 
+async function handlePost(request: Request): Promise<Response> {
+  if (!(await authorized(request))) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  try {
+    const rows: Array<ReturnType<typeof toRow>> = [];
+    for (const url of [UPCOMING_URL, PREVIOUS_URL]) {
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error(`LL2 fetch failed [${res.status}]: ${body}`);
+        continue;
+      }
+      const data = (await res.json()) as { results?: Ll2Launch[] };
+      for (const l of data.results ?? []) rows.push(toRow(l));
+    }
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    if (rows.length > 0) {
+      const { error } = await supabaseAdmin
+        .from("launches")
+        .upsert(rows, { onConflict: "id" });
+      if (error) throw new Error(error.message);
+    }
+    // Drop launches whose window ended more than 3 days ago
+    await supabaseAdmin
+      .from("launches")
+      .delete()
+      .lt(
+        "window_end",
+        new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    return Response.json({ ok: true, upserted: rows.length });
+  } catch (e) {
+    console.error("launch ingest error", e);
+    return Response.json(
+      { ok: false, error: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
+  }
+}
+
 export const Route = createFileRoute("/api/public/ingest/launches")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        if (!(await authorized(request))) {
-          return new Response("Unauthorized", { status: 401 });
-        }
-        try {
-          const rows: Array<ReturnType<typeof toRow>> = [];
-          for (const url of [UPCOMING_URL, PREVIOUS_URL]) {
-            const res = await fetch(url, {
-              headers: { Accept: "application/json" },
-              signal: AbortSignal.timeout(15000),
-            });
-            if (!res.ok) {
-              const body = await res.text();
-              console.error(`LL2 fetch failed [${res.status}]: ${body}`);
-              continue;
-            }
-            const data = (await res.json()) as { results?: Ll2Launch[] };
-            for (const l of data.results ?? []) rows.push(toRow(l));
-          }
-          const { supabaseAdmin } = await import(
-            "@/integrations/supabase/client.server"
-          );
-          if (rows.length > 0) {
-            const { error } = await supabaseAdmin
-              .from("launches")
-              .upsert(rows, { onConflict: "id" });
-            if (error) throw new Error(error.message);
-          }
-          // Drop launches whose window ended more than 3 days ago
-          await supabaseAdmin
-            .from("launches")
-            .delete()
-            .lt(
-              "window_end",
-              new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-            );
-          return Response.json({ ok: true, upserted: rows.length });
-        } catch (e) {
-          console.error("launch ingest error", e);
-          return Response.json(
-            { ok: false, error: e instanceof Error ? e.message : String(e) },
-            { status: 500 },
-          );
-        }
-      },
-      GET: async ({ request }) =>
-        Route.options.server!.handlers!.POST!({ request } as never),
+      POST: handlePost,
+      GET: handlePost,
     },
   },
 });
