@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Map, NavigationControl, AttributionControl, GeoJSONSource } from "maplibre-gl";
+import { Map, NavigationControl, AttributionControl, GeoJSONSource, setWorkerUrl } from "maplibre-gl";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Entity, EntityType, LayerVisibility } from "./types";
 
@@ -34,6 +35,8 @@ type GeoJSONFeatureCollection = {
     };
   }>;
 };
+
+setWorkerUrl(maplibreWorkerUrl);
 
 export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
