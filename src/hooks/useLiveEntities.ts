@@ -28,6 +28,7 @@ export interface LiveState {
   status: FeedStatus;
   lastUpdated: Date | null;
   loading: boolean;
+  fetching: boolean;
   refresh: () => void;
 }
 
@@ -210,6 +211,7 @@ export function useLiveEntities(enabled: boolean, viewport?: LiveViewport): Live
     status,
     lastUpdated: snapshot ? new Date(snapshot.fetchedAt) : null,
     loading: query.isLoading,
+    fetching: query.isFetching,
     refresh,
   };
 }
