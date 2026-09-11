@@ -3,16 +3,18 @@ import { useMemo, useState, useCallback } from "react";
 import { ClientOnly } from "@/components/ClientOnly";
 import { mockDataset, getEntityById, getCounts } from "@/data/mock";
 import type { Entity, EntityType } from "@/data/mock";
-import { TopBar } from "@/components/aurora/TopBar";
-import { CounterStrip } from "@/components/aurora/CounterStrip";
-import { ControlPanel } from "@/components/aurora/ControlPanel";
-import { FiltersPanel } from "@/components/aurora/FiltersPanel";
-import { EntityPanel } from "@/components/aurora/EntityPanel";
-import { TimelineFeed } from "@/components/aurora/TimelineFeed";
-import { AlertsPanel } from "@/components/aurora/AlertsPanel";
-import { AiInsights } from "@/components/aurora/AiInsights";
-import { MapCanvasDynamic } from "@/components/aurora/MapCanvasDynamic";
-import type { LayerVisibility, Filters, SelectedEntity } from "@/components/aurora/types";
+import {
+  TopBar,
+  CounterStrip,
+  ControlPanel,
+  FiltersPanel,
+  EntityPanel,
+  TimelineFeed,
+  AlertsPanel,
+  AiInsights,
+  MapCanvasDynamic,
+} from "@/components/console";
+import type { LayerVisibility, Filters, SelectedEntity } from "@/components/console";
 
 export const Route = createFileRoute("/")({
   head: () => ({
