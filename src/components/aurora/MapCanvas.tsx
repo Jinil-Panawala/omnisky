@@ -84,7 +84,7 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
           {
             id: "space",
             type: "background",
-            paint: { "background-color": "rgba(0,0,0,0)" },
+            paint: { "background-color": "#04070f" },
           },
           {
             id: "nightlights-layer",
@@ -123,7 +123,6 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
     });
 
     mapRef.current = map;
-    (window as unknown as Record<string, unknown>)["__auroraMap"] = map;
 
     return () => {
       map.remove();
@@ -197,22 +196,8 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
             9,
           ],
           "circle-color": ["match", ["get", "type"], "aircraft", entityColors.aircraft, "ship", entityColors.ship, "satellite", entityColors.satellite, entityColors.launch],
-          "circle-stroke-color": "#0b1020",
-          "circle-stroke-width": 1.5,
-        },
-      });
-
-      map.addLayer({
-        id: "entity-selected",
-        type: "circle",
-        source: "entities",
-        filter: ["==", ["get", "selected"], true],
-        paint: {
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 11, 10, 18],
-          "circle-color": "rgba(0,0,0,0)",
-          "circle-stroke-color": "#e2e8f0",
-          "circle-stroke-width": 2,
-          "circle-stroke-opacity": 0.9,
+          "circle-stroke-color": ["case", ["==", ["get", "selected"], true], "#e2e8f0", "#0b1020"],
+          "circle-stroke-width": ["case", ["==", ["get", "selected"], true], 3, 1.5],
         },
       });
 
@@ -276,7 +261,7 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
   }, [selectedId, loaded]);
 
   return (
-    <div className="relative w-full h-full bg-surface-1 aurora-starfield">
+    <div className="relative w-full h-full bg-surface-1">
       <div ref={mapContainer} className="h-full w-full" />
       <div className="pointer-events-none absolute inset-0 aurora-globe-vignette" />
       {!loaded && (
