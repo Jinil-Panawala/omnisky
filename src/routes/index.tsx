@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useCallback } from "react";
 import { ClientOnly } from "@/components/ClientOnly";
-import { mockDataset, getEntityById, getCounts } from "@/data/mock";
-import type { Entity, EntityType } from "@/data/mock";
+import { mockDataset } from "@/data/mock";
+import type { Entity } from "@/data/mock";
+import { useLiveEntities } from "@/hooks/useLiveEntities";
+import { SOURCE_ATTRIBUTION } from "@/lib/entities/canonical";
+import type { DataMode } from "@/components/console/layout/TopBar";
 import {
   TopBar,
   CounterStrip,
@@ -57,11 +60,23 @@ function Index() {
   });
 
   const [selected, setSelected] = useState<SelectedEntity>(null);
+  const [mode, setMode] = useState<DataMode>("demo");
+
+  const live = useLiveEntities(mode === "live");
 
   const allEntities = useMemo<Entity[]>(
-    () => [...mockDataset.aircraft, ...mockDataset.ships, ...mockDataset.satellites, ...mockDataset.launches],
-    []
+    () =>
+      mode === "live"
+        ? live.entities
+        : [
+            ...mockDataset.aircraft,
+            ...mockDataset.ships,
+            ...mockDataset.satellites,
+            ...mockDataset.launches,
+          ],
+    [mode, live.entities]
   );
+
 
   const filteredEntities = useMemo(() => {
     const search = filters.search.trim().toLowerCase();
@@ -78,16 +93,29 @@ function Index() {
     });
   }, [allEntities, layers, filters]);
 
-  const counts = useMemo(() => getCounts(), []);
+  const counts = useMemo(() => {
+    const tally = { aircraft: 0, ships: 0, satellites: 0, launches: 0 };
+    for (const e of allEntities) {
+      if (e.type === "aircraft") tally.aircraft += 1;
+      else if (e.type === "ship") tally.ships += 1;
+      else if (e.type === "satellite") tally.satellites += 1;
+      else if (e.type === "launch") tally.launches += 1;
+    }
+    return { ...tally, alerts: mockDataset.alerts.length };
+  }, [allEntities]);
 
   const handleSelectEntity = useCallback((entity: Entity) => {
     setSelected({ entity, source: "map" });
   }, []);
 
-  const handleSelectById = useCallback((id: string, type?: EntityType) => {
-    const entity = getEntityById(id, type);
-    if (entity) setSelected({ entity, source: "list" });
-  }, []);
+  const handleSelectById = useCallback(
+    (id: string) => {
+      const entity = allEntities.find((e) => e.id === id);
+      if (entity) setSelected({ entity, source: "list" });
+    },
+    [allEntities]
+  );
+
 
   const handleSearch = useCallback((value: string) => {
     setFilters((prev) => ({ ...prev, search: value }));
@@ -98,9 +126,9 @@ function Index() {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    // Placeholder refresh; live data will replace mock dataset later.
-    window.location.reload();
-  }, []);
+    if (mode === "live") live.refresh();
+    else window.location.reload();
+  }, [mode, live]);
 
   return (
     <ClientOnly
@@ -114,7 +142,13 @@ function Index() {
       }
     >
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-console-bg text-console-text">
-        <TopBar onSearch={handleSearch} />
+        <TopBar
+          onSearch={handleSearch}
+          mode={mode}
+          onModeChange={setMode}
+          feedStatus={live.status}
+          lastUpdated={live.lastUpdated}
+        />
         <CounterStrip counts={counts} />
         <div className="flex flex-1 min-h-0">
           <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
@@ -145,9 +179,31 @@ function Index() {
             </div>
           </div>
           <div className="hidden xl:block w-80 shrink-0">
-            <TimelineFeed events={mockDataset.events} onSelect={handleSelectById} />
+            <TimelineFeed
+              events={mode === "live" ? live.events : mockDataset.events}
+              onSelect={handleSelectById}
+            />
           </div>
         </div>
+        <footer className="h-6 shrink-0 flex items-center gap-3 px-4 border-t border-console-border bg-console-panel overflow-x-auto">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-console-dim shrink-0">
+            {mode === "live" ? "Live public data" : "Demo data"}
+          </span>
+          {SOURCE_ATTRIBUTION.map((s) => (
+            <a
+              key={s.label}
+              href={s.href}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-[10px] font-mono text-console-dim hover:text-console-text whitespace-nowrap"
+            >
+              {s.scope}: {s.label}
+            </a>
+          ))}
+          <span className="text-[10px] font-mono text-console-dim whitespace-nowrap">
+            Coverage is partial and positions are not authoritative.
+          </span>
+        </footer>
       </div>
     </ClientOnly>
   );
