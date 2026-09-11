@@ -35,3 +35,26 @@ export function entityIconUrl(type: EntityType, color: string, selected: boolean
   cache.set(key, url);
   return url;
 }
+
+/**
+ * Cluster marker: a soft ring in the layer colour with the type glyph inside.
+ * Only a handful of variants exist (type x size bucket) so they cache well.
+ */
+export function clusterIconUrl(type: EntityType, color: string, sizeBucket: 0 | 1 | 2): string {
+  const key = `cluster|${type}|${color}|${sizeBucket}`;
+  const cached = cache.get(key);
+  if (cached) return cached;
+
+  const d = paths[type] ?? paths["alert"]!;
+  const r = [20, 24, 28][sizeBucket]!;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <circle cx="40" cy="40" r="${r + 6}" fill="${color}" fill-opacity="0.10"/>
+  <circle cx="40" cy="40" r="${r}" fill="#04070f" fill-opacity="0.75" stroke="${color}" stroke-opacity="0.85" stroke-width="2"/>
+  <g transform="translate(28 28) scale(1)" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+    <path d="${d}"/>
+  </g>
+</svg>`;
+  const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  cache.set(key, url);
+  return url;
+}
