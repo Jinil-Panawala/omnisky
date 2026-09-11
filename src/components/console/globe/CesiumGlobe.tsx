@@ -185,13 +185,14 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     if (!viewer || !ready || !selectedId) return;
     const target = entities.find((e) => e.id === selectedId);
     if (!target) return;
+    const height = target.type === "satellite" ? 3_500_000 : 600_000;
     viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(target.lon, target.lat, 9_000_000),
+      destination: Cartesian3.fromDegrees(target.lon, target.lat, height),
       orientation: { heading: 0, pitch: CesiumMath.toRadians(-90), roll: 0 },
-      duration: 1.2,
+      duration: 1.4,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, ready]);
+  }, [selectedId, ready, entities.length]);
 
   return (
     <div className="relative h-full w-full bg-surface-1">
