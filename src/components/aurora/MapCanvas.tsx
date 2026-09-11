@@ -58,30 +58,49 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
         },
         light: { anchor: "map", intensity: 0.2 },
         sources: {
-          basemap: {
+          nightlights: {
             type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tiles: [
+              "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg",
+            ],
             tileSize: 256,
-            attribution: "&copy; OpenStreetMap contributors",
+            maxzoom: 8,
+            attribution: "NASA EOSDIS GIBS",
+          },
+          labels: {
+            type: "raster",
+            tiles: [
+              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            attribution: "&copy; OpenStreetMap contributors, &copy; CARTO",
           },
         },
         layers: [
           {
             id: "space",
             type: "background",
-            paint: { "background-color": "#050a18" },
+            paint: { "background-color": "#04070f" },
           },
           {
-            id: "basemap-layer",
+            id: "nightlights-layer",
             type: "raster",
-            source: "basemap",
-            minzoom: 0,
-            maxzoom: 19,
+            source: "nightlights",
             paint: {
-              "raster-saturation": -0.9,
-              "raster-brightness-max": 0.45,
-              "raster-contrast": 0.15,
-              "raster-opacity": 0.9,
+              "raster-opacity": 1,
+              "raster-contrast": 0.2,
+              "raster-saturation": -0.15,
+            },
+          },
+          {
+            id: "labels-layer",
+            type: "raster",
+            source: "labels",
+            minzoom: 3,
+            paint: {
+              "raster-opacity": 0.35,
+              "raster-saturation": -0.8,
             },
           },
         ],
