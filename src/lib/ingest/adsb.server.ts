@@ -152,7 +152,7 @@ async function fetchRegionOnce(
   return data.ac ?? [];
 }
 
-/** The courtesy API throttles bursts, so retry a failed region once. */
+/** The courtesy API throttles bursts, so back off once on failure. */
 async function fetchRegion(
   lat: number,
   lon: number,
@@ -160,27 +160,31 @@ async function fetchRegion(
   try {
     return await fetchRegionOnce(lat, lon);
   } catch {
-    await sleep(600);
+    await sleep(2000);
     return fetchRegionOnce(lat, lon);
   }
+}
+
+/** Rotate through the region list so consecutive pulls cover the whole globe. */
+function regionSlice(): Array<[number, number]> {
+  const groups = Math.ceil(REGIONS.length / REGIONS_PER_PULL);
+  const group = Math.floor(Date.now() / 30000) % groups;
+  const start = group * REGIONS_PER_PULL;
+  return REGIONS.slice(start, start + REGIONS_PER_PULL);
 }
 
 export async function ingestAircraft(): Promise<IngestResult> {
   try {
     const raw: Array<Record<string, unknown>> = [];
     const failures: string[] = [];
-    const CONCURRENCY = 3;
-    for (let i = 0; i < REGIONS.length; i += CONCURRENCY) {
-      const results = await Promise.allSettled(
-        REGIONS.slice(i, i + CONCURRENCY).map(([lat, lon]) =>
-          fetchRegion(lat, lon),
-        ),
-      );
-      for (const r of results) {
-        if (r.status === "fulfilled") raw.push(...r.value);
-        else failures.push(String(r.reason));
+    const slice = regionSlice();
+    for (const [lat, lon] of slice) {
+      try {
+        raw.push(...(await fetchRegion(lat, lon)));
+      } catch (e) {
+        failures.push(String(e));
       }
-      await sleep(150);
+      await sleep(REGION_PACE_MS);
     }
     if (raw.length === 0) {
       throw new Error(
