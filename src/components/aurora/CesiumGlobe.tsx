@@ -80,6 +80,17 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     );
     labels.alpha = 0.95;
     labels.brightness = 1.6;
+    labelsLayerRef.current = labels;
+
+    const street = viewer.imageryLayers.addImageryProvider(
+      new UrlTemplateImageryProvider({
+        url: STREET_MAP,
+        maximumLevel: 18,
+        credit: "© OpenStreetMap contributors, © CARTO",
+      })
+    );
+    street.show = false;
+    streetLayerRef.current = street;
 
     const scene = viewer.scene;
     scene.backgroundColor = Color.fromCssColorString("#04070f");
