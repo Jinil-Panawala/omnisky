@@ -1,5 +1,7 @@
 // CelesTrak TLE adapter. Free, keyless. Orbits are propagated in the browser.
-import { recordSourceHealth, type IngestResult } from "./shared.server";
+import type { IngestResult } from "@/domain/live";
+import { upsertSatelliteTles } from "@/server/db/positions.repository.server";
+import { runIngest } from "./run.server";
 
 export const SATELLITE_SOURCE = "celestrak";
 
@@ -46,8 +48,8 @@ function parseTle(text: string, category: string): TleRecord[] {
   return out;
 }
 
-export async function ingestSatellites(): Promise<IngestResult> {
-  try {
+export function ingestSatellites(): Promise<IngestResult> {
+  return runIngest(SATELLITE_SOURCE, async () => {
     const all: Array<TleRecord & { updated_at: string }> = [];
     const seen = new Set<number>();
     for (const [group, url] of GROUPS) {
@@ -65,24 +67,7 @@ export async function ingestSatellites(): Promise<IngestResult> {
         console.error(`celestrak group ${group} failed`, e);
       }
     }
-
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const BATCH = 500;
-    let upserted = 0;
-    for (let i = 0; i < all.length; i += BATCH) {
-      const { error } = await supabaseAdmin
-        .from("satellite_tles")
-        .upsert(all.slice(i, i + BATCH), { onConflict: "norad_id" });
-      if (error) throw new Error(error.message);
-      upserted += Math.min(BATCH, all.length - i);
-    }
-    await recordSourceHealth(SATELLITE_SOURCE, { rows: upserted });
-    return { source: SATELLITE_SOURCE, upserted };
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    await recordSourceHealth(SATELLITE_SOURCE, { error: message });
-    throw e;
-  }
+    return upsertSatelliteTles(all);
+  });
 }
+

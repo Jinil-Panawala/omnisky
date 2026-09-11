@@ -1,5 +1,11 @@
 // Launch Library 2 adapter. Free, keyless, rate limited (~15 req/hour anonymous).
-import { dedupe, recordSourceHealth, type IngestResult } from "./shared.server";
+import { dedupe, LAUNCH_RETENTION_MS } from "@/domain/ingest";
+import type { IngestResult } from "@/domain/live";
+import {
+  pruneOlderThan,
+  upsertLaunches,
+} from "@/server/db/positions.repository.server";
+import { runIngest } from "./run.server";
 
 export const LAUNCH_SOURCE = "launchlibrary2";
 
@@ -53,8 +59,8 @@ function toRow(l: Ll2Launch) {
   };
 }
 
-export async function ingestLaunches(): Promise<IngestResult> {
-  try {
+export function ingestLaunches(): Promise<IngestResult> {
+  return runIngest(LAUNCH_SOURCE, async () => {
     const collected: Array<ReturnType<typeof toRow>> = [];
     for (const url of [UPCOMING_URL, PREVIOUS_URL]) {
       const res = await fetch(url, {
@@ -68,31 +74,11 @@ export async function ingestLaunches(): Promise<IngestResult> {
       const data = (await res.json()) as { results?: Ll2Launch[] };
       for (const l of data.results ?? []) collected.push(toRow(l));
     }
+
     const rows = dedupe(collected, (r) => r.id);
-
-
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    if (rows.length > 0) {
-      const { error } = await supabaseAdmin
-        .from("launches")
-        .upsert(rows, { onConflict: "id" });
-      if (error) throw new Error(error.message);
-    }
-    await supabaseAdmin
-      .from("launches")
-      .delete()
-      .lt(
-        "window_end",
-        new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      );
-
-    await recordSourceHealth(LAUNCH_SOURCE, { rows: rows.length });
-    return { source: LAUNCH_SOURCE, upserted: rows.length };
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    await recordSourceHealth(LAUNCH_SOURCE, { error: message });
-    throw e;
-  }
+    const upserted = await upsertLaunches(rows);
+    await pruneOlderThan("launches", "window_end", LAUNCH_RETENTION_MS);
+    return upserted;
+  });
 }
+
