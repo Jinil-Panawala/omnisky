@@ -25,7 +25,7 @@ A single full-screen command console, dark navy, no page scrolling — every pan
 
 Pieces, matching the reference:
 
-- **Top bar** — logo lockup, AI search field with example hints, Quick Actions button, notification and inbox icons, analyst avatar.
+- **Top bar** — placeholder logo lockup (app name stored in one constant for easy renaming), AI search field with example hints, Quick Actions button, notification and inbox icons, analyst avatar.
 - **Left rail** — Map / Timeline / Alerts (badge) / Investigations / Reports / Bookmarks / Layers; Filters block with time range, region, entity type, affiliation selects, altitude and speed sliders, Apply Filters button; AI Insights cards at the bottom.
 - **Map area** — dark map with colour-coded aircraft, ship, satellite and launch markers, a hover tooltip card, a lat/lon/elevation readout box with scale bar, right-side map control stack, and 2D/3D + Real-time chips.
 - **Counter strip** — five counts with trend deltas and a View Global Overview button.
