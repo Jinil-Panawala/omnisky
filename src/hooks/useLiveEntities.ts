@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  getLiveSnapshot,
-  refreshLiveFeeds,
-  type LiveSnapshot,
-  type SourceHealthRow,
-} from "@/domain/live";
+import { getLiveSnapshot, refreshLiveFeeds } from "@/api/live.functions";
+import { LIVE_POLLING } from "@/domain/constants";
+import type { LiveSnapshot, SourceHealthRow } from "@/domain/live";
 import {
   aircraftFromRow,
   launchFromRow,
@@ -15,9 +12,9 @@ import {
 } from "@/lib/live/adapters";
 import type { Entity, SatelliteEntity, TimelineEvent } from "@/domain/entities";
 
-const SNAPSHOT_INTERVAL_MS = 20000;
-const REFRESH_INTERVAL_MS = 30000;
-const PROPAGATE_INTERVAL_MS = 1500;
+const SNAPSHOT_INTERVAL_MS = LIVE_POLLING.snapshotIntervalMs;
+const REFRESH_INTERVAL_MS = LIVE_POLLING.refreshIntervalMs;
+const PROPAGATE_INTERVAL_MS = LIVE_POLLING.propagateIntervalMs;
 
 export type FeedStatus = "connecting" | "live" | "stale" | "error";
 
