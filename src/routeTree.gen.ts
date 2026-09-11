@@ -10,33 +10,90 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicIngestAircraftRouteImport } from './routes/api/public/ingest/aircraft'
+import { Route as ApiPublicIngestLaunchesRouteImport } from './routes/api/public/ingest/launches'
+import { Route as ApiPublicIngestSatellitesRouteImport } from './routes/api/public/ingest/satellites'
+import { Route as ApiPublicIngestVesselsRouteImport } from './routes/api/public/ingest/vessels'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIngestAircraftRoute = ApiPublicIngestAircraftRouteImport.update({
+  id: '/api/public/ingest/aircraft',
+  path: '/api/public/ingest/aircraft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIngestLaunchesRoute = ApiPublicIngestLaunchesRouteImport.update({
+  id: '/api/public/ingest/launches',
+  path: '/api/public/ingest/launches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicIngestSatellitesRoute =
+  ApiPublicIngestSatellitesRouteImport.update({
+    id: '/api/public/ingest/satellites',
+    path: '/api/public/ingest/satellites',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicIngestVesselsRoute = ApiPublicIngestVesselsRouteImport.update({
+  id: '/api/public/ingest/vessels',
+  path: '/api/public/ingest/vessels',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/ingest/aircraft': typeof ApiPublicIngestAircraftRoute
+  '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
+  '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
+  '/api/public/ingest/vessels': typeof ApiPublicIngestVesselsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/ingest/aircraft': typeof ApiPublicIngestAircraftRoute
+  '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
+  '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
+  '/api/public/ingest/vessels': typeof ApiPublicIngestVesselsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/ingest/aircraft': typeof ApiPublicIngestAircraftRoute
+  '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
+  '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
+  '/api/public/ingest/vessels': typeof ApiPublicIngestVesselsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/api/public/ingest/aircraft'
+    | '/api/public/ingest/launches'
+    | '/api/public/ingest/satellites'
+    | '/api/public/ingest/vessels'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/api/public/ingest/aircraft'
+    | '/api/public/ingest/launches'
+    | '/api/public/ingest/satellites'
+    | '/api/public/ingest/vessels'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/public/ingest/aircraft'
+    | '/api/public/ingest/launches'
+    | '/api/public/ingest/satellites'
+    | '/api/public/ingest/vessels'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicIngestAircraftRoute: typeof ApiPublicIngestAircraftRoute
+  ApiPublicIngestLaunchesRoute: typeof ApiPublicIngestLaunchesRoute
+  ApiPublicIngestSatellitesRoute: typeof ApiPublicIngestSatellitesRoute
+  ApiPublicIngestVesselsRoute: typeof ApiPublicIngestVesselsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +105,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ingest/aircraft': {
+      id: '/api/public/ingest/aircraft'
+      path: '/api/public/ingest/aircraft'
+      fullPath: '/api/public/ingest/aircraft'
+      preLoaderRoute: typeof ApiPublicIngestAircraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ingest/launches': {
+      id: '/api/public/ingest/launches'
+      path: '/api/public/ingest/launches'
+      fullPath: '/api/public/ingest/launches'
+      preLoaderRoute: typeof ApiPublicIngestLaunchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ingest/satellites': {
+      id: '/api/public/ingest/satellites'
+      path: '/api/public/ingest/satellites'
+      fullPath: '/api/public/ingest/satellites'
+      preLoaderRoute: typeof ApiPublicIngestSatellitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ingest/vessels': {
+      id: '/api/public/ingest/vessels'
+      path: '/api/public/ingest/vessels'
+      fullPath: '/api/public/ingest/vessels'
+      preLoaderRoute: typeof ApiPublicIngestVesselsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicIngestAircraftRoute: ApiPublicIngestAircraftRoute,
+  ApiPublicIngestLaunchesRoute: ApiPublicIngestLaunchesRoute,
+  ApiPublicIngestSatellitesRoute: ApiPublicIngestSatellitesRoute,
+  ApiPublicIngestVesselsRoute: ApiPublicIngestVesselsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
