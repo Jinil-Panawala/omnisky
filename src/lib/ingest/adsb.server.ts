@@ -123,7 +123,9 @@ function normalise(raw: Array<Record<string, unknown>>): AircraftRow[] {
   return dedupe(rows, (r) => r.icao24).slice(0, MAX_AIRCRAFT);
 }
 
-async function fetchRegion(
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchRegionOnce(
   lat: number,
   lon: number,
 ): Promise<Array<Record<string, unknown>>> {
@@ -144,11 +146,24 @@ async function fetchRegion(
   return data.ac ?? [];
 }
 
+/** The courtesy API throttles bursts, so retry a failed region once. */
+async function fetchRegion(
+  lat: number,
+  lon: number,
+): Promise<Array<Record<string, unknown>>> {
+  try {
+    return await fetchRegionOnce(lat, lon);
+  } catch {
+    await sleep(600);
+    return fetchRegionOnce(lat, lon);
+  }
+}
+
 export async function ingestAircraft(): Promise<IngestResult> {
   try {
     const raw: Array<Record<string, unknown>> = [];
     const failures: string[] = [];
-    const CONCURRENCY = 8;
+    const CONCURRENCY = 3;
     for (let i = 0; i < REGIONS.length; i += CONCURRENCY) {
       const results = await Promise.allSettled(
         REGIONS.slice(i, i + CONCURRENCY).map(([lat, lon]) =>
@@ -159,6 +174,7 @@ export async function ingestAircraft(): Promise<IngestResult> {
         if (r.status === "fulfilled") raw.push(...r.value);
         else failures.push(String(r.reason));
       }
+      await sleep(150);
     }
     if (raw.length === 0) {
       throw new Error(
