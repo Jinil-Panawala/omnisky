@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Map, NavigationControl, AttributionControl, GeoJSONSource, setWorkerUrl } from "maplibre-gl";
-import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
+import { Map, NavigationControl, AttributionControl, GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Entity, EntityType, LayerVisibility } from "./types";
 
@@ -35,8 +34,6 @@ type GeoJSONFeatureCollection = {
     };
   }>;
 };
-
-setWorkerUrl(maplibreWorkerUrl);
 
 export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -84,7 +81,7 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
           {
             id: "space",
             type: "background",
-            paint: { "background-color": "#04070f" },
+            paint: { "background-color": "rgba(0,0,0,0)" },
           },
           {
             id: "nightlights-layer",
@@ -108,8 +105,8 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
           },
         ],
       },
-      center: [20, 25],
-      zoom: 1.6,
+      center: [24, 22],
+      zoom: 1.75,
       pitch: 0,
       bearing: 0,
       attributionControl: false,
@@ -123,7 +120,6 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
     });
 
     mapRef.current = map;
-    (window as unknown as Record<string, unknown>)["__auroraMap"] = map;
 
     return () => {
       map.remove();
@@ -202,6 +198,20 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
         },
       });
 
+      map.addLayer({
+        id: "entity-selected",
+        type: "circle",
+        source: "entities",
+        filter: ["==", ["get", "selected"], true],
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, 11, 10, 18],
+          "circle-color": "rgba(0,0,0,0)",
+          "circle-stroke-color": "#e2e8f0",
+          "circle-stroke-width": 2,
+          "circle-stroke-opacity": 0.9,
+        },
+      });
+
       map.on("click", "entity-dot", (e) => {
         const feature = e.features?.[0];
         if (!feature) return;
@@ -262,8 +272,9 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
   }, [selectedId, loaded]);
 
   return (
-    <div className="relative w-full h-full bg-surface-1">
+    <div className="relative w-full h-full bg-surface-1 aurora-starfield">
       <div ref={mapContainer} className="h-full w-full" />
+      <div className="pointer-events-none absolute inset-0 aurora-globe-vignette" />
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface-1 text-console-subtle">
           <div className="flex flex-col items-center gap-3">
