@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      aircraft_positions: {
+        Row: {
+          altitude_m: number | null
+          callsign: string | null
+          heading_deg: number | null
+          icao24: string
+          lat: number | null
+          lon: number | null
+          on_ground: boolean | null
+          updated_at: string
+          velocity_ms: number | null
+          vertical_rate_ms: number | null
+        }
+        Insert: {
+          altitude_m?: number | null
+          callsign?: string | null
+          heading_deg?: number | null
+          icao24: string
+          lat?: number | null
+          lon?: number | null
+          on_ground?: boolean | null
+          updated_at?: string
+          velocity_ms?: number | null
+          vertical_rate_ms?: number | null
+        }
+        Update: {
+          altitude_m?: number | null
+          callsign?: string | null
+          heading_deg?: number | null
+          icao24?: string
+          lat?: number | null
+          lon?: number | null
+          on_ground?: boolean | null
+          updated_at?: string
+          velocity_ms?: number | null
+          vertical_rate_ms?: number | null
+        }
+        Relationships: []
+      }
+      launches: {
+        Row: {
+          id: string
+          mission: string | null
+          name: string
+          pad_lat: number | null
+          pad_lon: number | null
+          pad_name: string | null
+          provider: string | null
+          rocket: string | null
+          status: string | null
+          updated_at: string
+          window_end: string | null
+          window_start: string | null
+        }
+        Insert: {
+          id: string
+          mission?: string | null
+          name: string
+          pad_lat?: number | null
+          pad_lon?: number | null
+          pad_name?: string | null
+          provider?: string | null
+          rocket?: string | null
+          status?: string | null
+          updated_at?: string
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          id?: string
+          mission?: string | null
+          name?: string
+          pad_lat?: number | null
+          pad_lon?: number | null
+          pad_name?: string | null
+          provider?: string | null
+          rocket?: string | null
+          status?: string | null
+          updated_at?: string
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
+      position_history: {
+        Row: {
+          altitude_m: number | null
+          craft_id: string
+          craft_type: string
+          id: number
+          lat: number | null
+          lon: number | null
+          recorded_at: string
+          speed: number | null
+        }
+        Insert: {
+          altitude_m?: number | null
+          craft_id: string
+          craft_type: string
+          id?: never
+          lat?: number | null
+          lon?: number | null
+          recorded_at?: string
+          speed?: number | null
+        }
+        Update: {
+          altitude_m?: number | null
+          craft_id?: string
+          craft_type?: string
+          id?: never
+          lat?: number | null
+          lon?: number | null
+          recorded_at?: string
+          speed?: number | null
+        }
+        Relationships: []
+      }
+      satellite_tles: {
+        Row: {
+          category: string | null
+          name: string
+          norad_id: number
+          tle_line1: string
+          tle_line2: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          name: string
+          norad_id: number
+          tle_line1: string
+          tle_line2: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          name?: string
+          norad_id?: number
+          tle_line1?: string
+          tle_line2?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vessel_positions: {
+        Row: {
+          course_deg: number | null
+          heading_deg: number | null
+          lat: number | null
+          lon: number | null
+          mmsi: string
+          ship_name: string | null
+          ship_type: string | null
+          speed_kn: number | null
+          updated_at: string
+        }
+        Insert: {
+          course_deg?: number | null
+          heading_deg?: number | null
+          lat?: number | null
+          lon?: number | null
+          mmsi: string
+          ship_name?: string | null
+          ship_type?: string | null
+          speed_kn?: number | null
+          updated_at?: string
+        }
+        Update: {
+          course_deg?: number | null
+          heading_deg?: number | null
+          lat?: number | null
+          lon?: number | null
+          mmsi?: string
+          ship_name?: string | null
+          ship_type?: string | null
+          speed_kn?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
