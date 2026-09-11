@@ -98,10 +98,13 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
       new UrlTemplateImageryProvider({
         url: STREET_MAP,
         maximumLevel: 18,
-        credit: "© OpenStreetMap contributors, © CARTO",
+        credit: "© OpenStreetMap contributors",
       })
     );
     street.show = false;
+    street.brightness = 0.35;
+    street.contrast = 1.05;
+    street.saturation = 0.25;
     streetLayerRef.current = street;
 
     const scene = viewer.scene;
