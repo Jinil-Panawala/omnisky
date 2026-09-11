@@ -53,7 +53,7 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
 
   useEffect(() => {
     if (!ready) return;
-    if (labelsLayerRef.current) labelsLayerRef.current.show = baseMap === "lights";
+    if (labelsLayerRef.current) labelsLayerRef.current.show = true;
     if (streetLayerRef.current) streetLayerRef.current.show = baseMap === "map";
   }, [baseMap, ready]);
 
