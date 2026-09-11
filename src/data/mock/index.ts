@@ -14,9 +14,9 @@ import type {
   EntityType,
   NearbyEntity,
   MockDataset,
-} from "./types";
+} from "@/domain/entities";
 
-export * from "./types";
+export * from "@/domain/entities";
 
 export const mockDataset: MockDataset = {
   aircraft,

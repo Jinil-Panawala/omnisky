@@ -1,5 +1,5 @@
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
-import type { IngestResult } from "./shared.server";
+import type { IngestResult } from "@/domain/live";
 
 /** Cron secret bearer OR the publishable apikey header. */
 export async function authorizedIngest(request: Request): Promise<boolean> {

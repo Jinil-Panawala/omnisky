@@ -20,7 +20,7 @@ import {
   Math as CesiumMath,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
-import type { Entity, EntityType, LayerVisibility } from "../types";
+import type { Entity, EntityType, LayerVisibility } from "@/domain/console";
 import { clusterIconUrl, entityIconUrl } from "./entity-icons";
 import {
   buildRenderSet,

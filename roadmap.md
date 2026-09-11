@@ -10,6 +10,7 @@
 - [x] Viewport-scoped snapshot queries + lat/lon indexes; selected-object trail from position_history
 - [x] Smooth interpolated movement between position updates (dead-reckoning, no teleporting)
 - [x] Collapsible side panels (filters, alerts, feed, details) to expand the map
+- [x] Folder restructure: domain / api / server (db query layer, services, ingest) / frontend
 - [ ] Server-side clustering / vector tiles for datasets beyond the per-viewport row budget
 - [ ] Watchlists and alert-driven priority
 - [ ] Entity trails / history playback from position_history

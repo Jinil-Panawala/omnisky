@@ -1,4 +1,4 @@
-import type { TimelineEvent } from "./types";
+import type { TimelineEvent } from "@/domain/entities";
 
 const now = new Date();
 

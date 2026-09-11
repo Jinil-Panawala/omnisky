@@ -6,24 +6,15 @@ import type {
   LaunchEntity,
   SatelliteEntity,
   ShipEntity,
-} from "@/data/mock/types";
+} from "@/domain/entities";
 import type {
   AircraftSnapshotRow,
   LaunchSnapshotRow,
   SatelliteSnapshotRow,
   VesselSnapshotRow,
-} from "@/lib/live.functions";
+} from "@/domain/live";
 
-export const SOURCE_ATTRIBUTION = [
-  { label: "ADSB.lol", href: "https://adsb.lol", scope: "Aircraft" },
-  { label: "AISStream", href: "https://aisstream.io", scope: "Vessels" },
-  { label: "CelesTrak", href: "https://celestrak.org", scope: "Satellites" },
-  {
-    label: "Launch Library 2",
-    href: "https://thespacedevs.com",
-    scope: "Launches",
-  },
-] as const;
+export { SOURCE_ATTRIBUTION } from "@/domain/constants";
 
 export function aircraftFromRow(row: AircraftSnapshotRow): AircraftEntity | null {
   if (row.lat == null || row.lon == null) return null;

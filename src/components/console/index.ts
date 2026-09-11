@@ -13,4 +13,4 @@ export { TimelineFeed } from "./panels/TimelineFeed";
 export { AlertsPanel } from "./panels/AlertsPanel";
 export { AiInsights } from "./panels/AiInsights";
 
-export type * from "./types";
+export type * from "@/domain/console";

@@ -1,4 +1,4 @@
-import type { SatelliteEntity } from "./types";
+import type { SatelliteEntity } from "@/domain/entities";
 
 function makeSat(
   noradId: number,

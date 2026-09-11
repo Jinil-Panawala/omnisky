@@ -1,4 +1,4 @@
-import type { LaunchEntity } from "./types";
+import type { LaunchEntity } from "@/domain/entities";
 
 function makeLaunch(
   id: string,

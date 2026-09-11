@@ -1,11 +1,13 @@
 // ADSB.lol adapter + processing pass for aircraft.
 // Free, keyless, courtesy API. Attribution required; coverage is not complete.
+import { dedupe, POSITION_TTL_MS, validCoord } from "@/domain/ingest";
+import type { IngestResult } from "@/domain/live";
 import {
-  dedupe,
-  recordSourceHealth,
-  validCoord,
-  type IngestResult,
-} from "./shared.server";
+  insertPositionHistory,
+  pruneOlderThan,
+  upsertAircraftPositions,
+} from "@/server/db/positions.repository.server";
+import { runIngest } from "./run.server";
 
 // The global /v2/all snapshot is frequently rate-limited, so sample the world
 // with radius queries (250 nm cap per query) and merge the results. Coverage
@@ -83,8 +85,7 @@ const MAX_AIRCRAFT = 20000;
 // out — a few pulls in, the whole map is populated.
 const REGIONS_PER_PULL = 3;
 const REGION_PACE_MS = 2000;
-const POSITION_TTL_MS = 30 * 60 * 1000;
-const BATCH = 500;
+const HISTORY_SAMPLE_CAP = 500;
 export const AIRCRAFT_SOURCE = "adsb.lol";
 
 interface AircraftRow {
@@ -173,12 +174,11 @@ function regionSlice(): Array<[number, number]> {
   return REGIONS.slice(start, start + REGIONS_PER_PULL);
 }
 
-export async function ingestAircraft(): Promise<IngestResult> {
-  try {
+export function ingestAircraft(): Promise<IngestResult> {
+  return runIngest(AIRCRAFT_SOURCE, async () => {
     const raw: Array<Record<string, unknown>> = [];
     const failures: string[] = [];
-    const slice = regionSlice();
-    for (const [lat, lon] of slice) {
+    for (const [lat, lon] of regionSlice()) {
       try {
         raw.push(...(await fetchRegion(lat, lon)));
       } catch (e) {
@@ -191,48 +191,27 @@ export async function ingestAircraft(): Promise<IngestResult> {
         `ADSB.lol returned no aircraft (${failures[0] ?? "empty response"})`,
       );
     }
+
     const rows = normalise(raw);
+    const upserted = await upsertAircraftPositions(rows);
 
-
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
+    // Sample every 10th aircraft for trails; full history would be enormous.
+    await insertPositionHistory(
+      rows
+        .filter((_, i) => i % 10 === 0)
+        .slice(0, HISTORY_SAMPLE_CAP)
+        .map((r) => ({
+          craft_type: "aircraft" as const,
+          craft_id: r.icao24,
+          lat: r.lat,
+          lon: r.lon,
+          altitude_m: r.altitude_m,
+          speed: r.velocity_ms,
+        })),
     );
 
-    let upserted = 0;
-    for (let i = 0; i < rows.length; i += BATCH) {
-      const chunk = rows.slice(i, i + BATCH);
-      const { error } = await supabaseAdmin
-        .from("aircraft_positions")
-        .upsert(chunk, { onConflict: "icao24" });
-      if (error) throw new Error(error.message);
-      upserted += chunk.length;
-    }
-
-    const historyRows = rows
-      .filter((_, i) => i % 10 === 0)
-      .slice(0, BATCH)
-      .map((r) => ({
-        craft_type: "aircraft" as const,
-        craft_id: r.icao24,
-        lat: r.lat,
-        lon: r.lon,
-        altitude_m: r.altitude_m,
-        speed: r.velocity_ms,
-      }));
-    if (historyRows.length > 0) {
-      await supabaseAdmin.from("position_history").insert(historyRows);
-    }
-
-    await supabaseAdmin
-      .from("aircraft_positions")
-      .delete()
-      .lt("updated_at", new Date(Date.now() - POSITION_TTL_MS).toISOString());
-
-    await recordSourceHealth(AIRCRAFT_SOURCE, { rows: upserted });
-    return { source: AIRCRAFT_SOURCE, upserted };
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    await recordSourceHealth(AIRCRAFT_SOURCE, { error: message });
-    throw e;
-  }
+    await pruneOlderThan("aircraft_positions", "updated_at", POSITION_TTL_MS);
+    return upserted;
+  });
 }
+

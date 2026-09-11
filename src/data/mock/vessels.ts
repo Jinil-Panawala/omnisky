@@ -1,4 +1,4 @@
-import type { ShipEntity } from "./types";
+import type { ShipEntity } from "@/domain/entities";
 
 function makeShip(
   mmsi: string,

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { runIngestRoute } from "@/lib/ingest/http.server";
-import { ingestSatellites } from "@/lib/ingest/celestrak.server";
+import { runIngestRoute } from "@/server/http/ingest-route.server";
+import { ingestSatellites } from "@/server/services/ingest/satellites.service.server";
 
 async function handle({ request }: { request: Request }): Promise<Response> {
   return runIngestRoute(request, ingestSatellites);

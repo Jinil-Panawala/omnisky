@@ -1,4 +1,4 @@
-import type { AiInsight } from "./types";
+import type { AiInsight } from "@/domain/entities";
 
 const now = new Date();
 

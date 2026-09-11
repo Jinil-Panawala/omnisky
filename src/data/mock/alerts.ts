@@ -1,4 +1,4 @@
-import type { ActiveAlert } from "./types";
+import type { ActiveAlert } from "@/domain/entities";
 
 const now = new Date();
 
