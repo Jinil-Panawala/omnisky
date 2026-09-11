@@ -68,7 +68,7 @@ export function MapCanvas({ entities, layers, selectedId, onSelect }: MapCanvasP
         ],
       },
       center: [20, 25],
-      zoom: 2.2,
+      zoom: 1.6,
       pitch: 0,
       bearing: 0,
       attributionControl: false,
