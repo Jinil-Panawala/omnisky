@@ -19,13 +19,15 @@ export function entityIconUrl(type: EntityType, color: string, selected: boolean
   if (cached) return cached;
 
   const d = paths[type] ?? paths["alert"]!;
-  const ring = selected ? "#e2e8f0" : color;
-  const ringWidth = selected ? 2.5 : 1.4;
+  const stroke = selected ? "#e2e8f0" : color;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <circle cx="32" cy="32" r="27" fill="${color}" opacity="0.18"/>
-  <circle cx="32" cy="32" r="19" fill="#050a18" opacity="0.9"/>
-  <circle cx="32" cy="32" r="19" fill="none" stroke="${ring}" stroke-width="${ringWidth * 1.6}" opacity="0.95"/>
-  <g transform="translate(15 15) scale(1.4)" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <defs>
+    <filter id="g" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="${color}" flood-opacity="0.95"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="${color}" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+  <g filter="url(#g)" transform="translate(8 8) scale(2)" fill="none" stroke="${stroke}" stroke-width="${selected ? 2.6 : 2}" stroke-linecap="round" stroke-linejoin="round">
     <path d="${d}"/>
   </g>
 </svg>`;
