@@ -148,7 +148,7 @@ export async function ingestAircraft(): Promise<IngestResult> {
   try {
     const raw: Array<Record<string, unknown>> = [];
     const failures: string[] = [];
-    const CONCURRENCY = 5;
+    const CONCURRENCY = 8;
     for (let i = 0; i < REGIONS.length; i += CONCURRENCY) {
       const results = await Promise.allSettled(
         REGIONS.slice(i, i + CONCURRENCY).map(([lat, lon]) =>
