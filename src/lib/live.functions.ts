@@ -68,7 +68,7 @@ export interface LiveSnapshot {
   fetchedAt: string;
 }
 
-/** Viewport-scoped query input. Null bounds means "whole globe". */
+/** Viewport-scoped query input; null bounds means "whole globe". */
 export interface SnapshotBounds {
   west: number;
   south: number;
@@ -78,7 +78,7 @@ export interface SnapshotBounds {
 
 export interface SnapshotInput {
   bounds?: SnapshotBounds | null;
-  /** Rendering density budget hint from the client. */
+  /** Rendering-density budget hint from the client. */
   limit?: number | null;
 }
 
@@ -105,22 +105,25 @@ async function publicClient() {
   });
 }
 
-type Filterable = {
-  gte: (col: string, v: number) => Filterable;
-  lte: (col: string, v: number) => Filterable;
-  or: (expr: string) => Filterable;
-};
+interface SpatialFilterable {
+  gte(column: string, value: number): SpatialFilterable;
+  lte(column: string, value: number): SpatialFilterable;
+  or(filter: string): SpatialFilterable;
+}
 
-/** Applies the spatial predicate; indexes on (lat, lon) keep this off full scans. */
-function applyBounds<T extends Filterable>(query: T, bounds?: SnapshotBounds | null): T {
+/**
+ * Applies the spatial predicate. Indexes on (lat, lon) keep the map from
+ * triggering a full table scan on every camera move.
+ */
+function withinBounds<T>(query: T, bounds: SnapshotBounds | null): T {
   if (!bounds) return query;
-  let q = query.gte("lat", bounds.south).lte("lat", bounds.north) as T;
-  if (bounds.west <= bounds.east) {
-    q = q.gte("lon", bounds.west).lte("lon", bounds.east) as T;
-  } else {
-    q = q.or(`lon.gte.${bounds.west},lon.lte.${bounds.east}`) as T;
-  }
-  return q;
+  let q = query as unknown as SpatialFilterable;
+  q = q.gte("lat", bounds.south).lte("lat", bounds.north);
+  q =
+    bounds.west <= bounds.east
+      ? q.gte("lon", bounds.west).lte("lon", bounds.east)
+      : q.or(`lon.gte.${bounds.west},lon.lte.${bounds.east}`);
+  return q as unknown as T;
 }
 
 export const getLiveSnapshot = createServerFn({ method: "GET" })
@@ -130,21 +133,48 @@ export const getLiveSnapshot = createServerFn({ method: "GET" })
     const bounds = data.bounds ?? null;
     const rows = Math.min(MAX_ROWS, Math.max(200, data.limit ?? DEFAULT_ROWS));
 
-    const [aircraft, vessels, satellites, launches, sources] = await Promise.all([
-      applyBounds(
-        supabase
-          .from("aircraft_positions")
-          .select(
-            "icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at",
-          ) as unknown as Filterable,
-        bounds,
-      )
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .  // placeholder
-        , 
-      supabase,
-    ]);
+    const aircraftQuery = withinBounds(
+      supabase
+        .from("aircraft_positions")
+        .select(
+          "icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at",
+        ),
+      bounds,
+    )
+      .order("updated_at", { ascending: false })
+      .range(0, rows - 1);
 
+    const vesselQuery = withinBounds(
+      supabase
+        .from("vessel_positions")
+        .select(
+          "mmsi, ship_name, lat, lon, speed_kn, course_deg, heading_deg, ship_type, updated_at",
+        ),
+      bounds,
+    )
+      .order("updated_at", { ascending: false })
+      .range(0, rows - 1);
+
+    const [aircraft, vessels, satellites, launches, sources] = await Promise.all([
+      aircraftQuery,
+      vesselQuery,
+      supabase
+        .from("satellite_tles")
+        .select("norad_id, name, tle_line1, tle_line2, category, updated_at")
+        .range(0, SATELLITE_LIMIT - 1),
+      supabase
+        .from("launches")
+        .select(
+          "id, name, rocket, mission, provider, pad_name, pad_lat, pad_lon, window_start, window_end, status, updated_at",
+        )
+        .order("window_start", { ascending: true })
+        .limit(LAUNCH_LIMIT),
+      supabase
+        .from("data_sources")
+        .select(
+          "source_key, label, status, last_success_at, last_error, last_error_at, rows_written",
+        ),
+    ]);
 
     return {
       aircraft: (aircraft.data ?? []) as AircraftSnapshotRow[],
@@ -154,8 +184,35 @@ export const getLiveSnapshot = createServerFn({ method: "GET" })
       sources: (sources.data ?? []) as SourceHealthRow[],
       fetchedAt: new Date().toISOString(),
     };
-  },
-);
+  });
+
+export interface TrackPoint {
+  lat: number;
+  lon: number;
+  recorded_at: string;
+}
+
+export interface TrackInput {
+  craftType: "aircraft" | "ship";
+  craftId: string;
+}
+
+/** Recent trail for a single object — only ever fetched for the selection. */
+export const getObjectTrack = createServerFn({ method: "GET" })
+  .inputValidator((data: TrackInput): TrackInput => data)
+  .handler(async ({ data }): Promise<TrackPoint[]> => {
+    const supabase = await publicClient();
+    const { data: rows } = await supabase
+      .from("position_history")
+      .select("lat, lon, recorded_at")
+      .eq("craft_type", data.craftType)
+      .eq("craft_id", data.craftId)
+      .order("recorded_at", { ascending: true })
+      .limit(200);
+    return ((rows ?? []) as Array<{ lat: number | null; lon: number | null; recorded_at: string }>)
+      .filter((r): r is TrackPoint => r.lat != null && r.lon != null)
+      .map((r) => ({ lat: r.lat, lon: r.lon, recorded_at: r.recorded_at }));
+  });
 
 /**
  * Pulls fresh aircraft + vessel data on demand while someone is watching the
