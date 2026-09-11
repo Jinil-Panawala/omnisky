@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      data_sources: {
+        Row: {
+          created_at: string
+          label: string
+          last_error: string | null
+          last_error_at: string | null
+          last_success_at: string | null
+          rows_written: number
+          source_key: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          label: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
+          rows_written?: number
+          source_key: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          label?: string
+          last_error?: string | null
+          last_error_at?: string | null
+          last_success_at?: string | null
+          rows_written?: number
+          source_key?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       launches: {
         Row: {
           id: string

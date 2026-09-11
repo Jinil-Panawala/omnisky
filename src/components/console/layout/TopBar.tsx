@@ -2,12 +2,33 @@ import { Radar, Search, Bell, Settings, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+
+export type DataMode = "demo" | "live";
 
 interface TopBarProps {
   onSearch?: (value: string) => void;
+  mode?: DataMode;
+  onModeChange?: (mode: DataMode) => void;
+  feedStatus?: "connecting" | "live" | "stale" | "error";
+  lastUpdated?: Date | null;
 }
 
-export function TopBar({ onSearch }: TopBarProps) {
+const STATUS_STYLES: Record<string, { dot: string; label: string }> = {
+  connecting: { dot: "bg-amber-400 animate-pulse", label: "Connecting" },
+  live: { dot: "bg-emerald-400 animate-pulse", label: "Live" },
+  stale: { dot: "bg-amber-400", label: "Stale" },
+  error: { dot: "bg-red-500", label: "Feed error" },
+};
+
+export function TopBar({
+  onSearch,
+  mode = "demo",
+  onModeChange,
+  feedStatus = "connecting",
+  lastUpdated,
+}: TopBarProps) {
+  const status = STATUS_STYLES[feedStatus] ?? STATUS_STYLES["connecting"]!;
   return (
     <header className="h-14 flex items-center justify-between px-4 bg-console-panel border-b border-console-border shrink-0">
       <div className="flex items-center gap-3">
@@ -35,6 +56,42 @@ export function TopBar({ onSearch }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <div className="flex items-center rounded-md border border-console-border-subtle bg-console-bg p-0.5">
+          {(["demo", "live"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onModeChange?.(value)}
+              className={cn(
+                "px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded-[4px] transition-colors",
+                mode === value
+                  ? "bg-primary/20 text-primary"
+                  : "text-console-dim hover:text-console-text",
+              )}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+
+        {mode === "live" && (
+          <div className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded-md border border-console-border-subtle">
+            <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-console-muted">
+              {status.label}
+            </span>
+            {lastUpdated && (
+              <span className="text-[10px] font-mono text-console-dim">
+                {lastUpdated.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </span>
+            )}
+          </div>
+        )}
+
         <Button variant="ghost" size="icon" className="text-console-muted hover:text-console-text hover:bg-console-panel-raised">
           <Bell className="w-4 h-4" />
         </Button>
