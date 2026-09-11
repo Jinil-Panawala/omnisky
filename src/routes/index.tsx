@@ -22,7 +22,9 @@ import {
   AlertsPanel,
   AiInsights,
   MapCanvasDynamic,
+  PanelToggles,
 } from "@/components/console";
+import type { PanelVisibility } from "@/components/console";
 import type { LayerVisibility, Filters, SelectedEntity } from "@/components/console";
 
 export const Route = createFileRoute("/")({
