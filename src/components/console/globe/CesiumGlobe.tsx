@@ -12,8 +12,8 @@ import {
   Entity as CesiumEntity,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
-import type { Entity, EntityType, LayerVisibility } from "./types";
-import { entityIconUrl } from "./entityIcons";
+import type { Entity, EntityType, LayerVisibility } from "../types";
+import { entityIconUrl } from "./entity-icons";
 
 interface CesiumGlobeProps {
   entities: Entity[];
@@ -195,8 +195,8 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
 
   return (
     <div className="relative h-full w-full bg-surface-1">
-      <div ref={containerRef} className="aurora-cesium h-full w-full" />
-      <div className="pointer-events-none absolute inset-0 aurora-globe-vignette" />
+      <div ref={containerRef} className="globe-cesium h-full w-full" />
+      <div className="pointer-events-none absolute inset-0 globe-vignette" />
       <div className="absolute right-3 top-3 flex overflow-hidden rounded-md border border-console-border bg-surface-1/85 backdrop-blur">
         {(
           [

@@ -1,6 +1,6 @@
 import { Layers, Plane, Ship, Satellite, Rocket, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { LayerVisibility } from "./types";
+import type { LayerVisibility } from "../types";
 
 interface ControlPanelProps {
   layers: LayerVisibility;
