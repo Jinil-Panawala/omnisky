@@ -283,6 +283,25 @@ export function CesiumGlobe({
     };
     scene.postRender.addEventListener(onPostRender);
 
+    // Smooth movement: ease + dead-reckon rendered objects every frame instead
+    // of teleporting them when a new fix arrives.
+    let lastMotion = 0;
+    const onPreRender = () => {
+      const now = performance.now();
+      if (now - lastMotion < 33) return;
+      lastMotion = now;
+      const motion = motionRef.current;
+      motion.tick(now);
+      for (const item of animatedRef.current) {
+        const pos = motion.sample(item.id);
+        if (!pos) continue;
+        const cart = Cartesian3.fromDegrees(pos.lon, pos.lat, item.heightM);
+        item.billboard.position = cart;
+        if (item.label) item.label.position = cart;
+      }
+    };
+    scene.preRender.addEventListener(onPreRender);
+
     viewerRef.current = viewer;
     setReady(true);
     const initial = readCameraView(viewer);
