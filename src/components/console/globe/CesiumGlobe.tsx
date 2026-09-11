@@ -352,7 +352,15 @@ export function CesiumGlobe({
       const bucket = cluster.count >= 500 ? 2 : cluster.count >= 50 ? 1 : 0;
       const color = entityColors[cluster.type];
       const px = [34, 42, 50][bucket]!;
+      // Nudge per type so co-located aircraft/ship/satellite clusters stay readable.
+      const nudge =
+        cluster.type === "aircraft"
+          ? new Cartesian2(-px * 0.55, -px * 0.2)
+          : cluster.type === "ship"
+            ? new Cartesian2(px * 0.55, -px * 0.2)
+            : new Cartesian2(0, px * 0.5);
       clusters.add({
+        pixelOffset: nudge,
         position: Cartesian3.fromDegrees(cluster.longitude, cluster.latitude, 0),
         image: clusterIconUrl(cluster.type, color, bucket as 0 | 1 | 2),
         width: px,
@@ -372,7 +380,7 @@ export function CesiumGlobe({
         outlineColor: Color.fromCssColorString("#04070f"),
         outlineWidth: 3,
         style: LabelStyle.FILL_AND_OUTLINE,
-        pixelOffset: new Cartesian2(0, px * 0.55),
+        pixelOffset: new Cartesian2(nudge.x, nudge.y + px * 0.55),
         horizontalOrigin: HorizontalOrigin.CENTER,
         verticalOrigin: VerticalOrigin.TOP,
       });
