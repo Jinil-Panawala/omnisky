@@ -84,6 +84,19 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
       shouldAnimate: true,
     });
 
+    const street = viewer.imageryLayers.addImageryProvider(
+      new UrlTemplateImageryProvider({
+        url: STREET_MAP,
+        maximumLevel: 18,
+        credit: "© OpenStreetMap contributors, © CARTO",
+      })
+    );
+    street.show = false;
+    street.brightness = 0.4;
+    street.contrast = 1.05;
+    street.saturation = 0.25;
+    streetLayerRef.current = street;
+
     const labels = viewer.imageryLayers.addImageryProvider(
       new UrlTemplateImageryProvider({
         url: DARK_LABELS,
@@ -94,19 +107,6 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     labels.alpha = 0.95;
     labels.brightness = 1.6;
     labelsLayerRef.current = labels;
-
-    const street = viewer.imageryLayers.addImageryProvider(
-      new UrlTemplateImageryProvider({
-        url: STREET_MAP,
-        maximumLevel: 18,
-        credit: "© OpenStreetMap contributors",
-      })
-    );
-    street.show = false;
-    street.brightness = 0.35;
-    street.contrast = 1.05;
-    street.saturation = 0.25;
-    streetLayerRef.current = street;
 
     const scene = viewer.scene;
     scene.backgroundColor = Color.fromCssColorString("#04070f");
