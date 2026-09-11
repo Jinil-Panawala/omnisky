@@ -119,6 +119,17 @@ function collectVessels(apiKey: string): Promise<VesselRow[]> {
         /* ignore malformed message */
       }
     };
+
+    ws.onmessage = (event: MessageEvent) => {
+      const data: unknown = event.data;
+      if (typeof data === "string") {
+        handleText(data);
+      } else if (data instanceof ArrayBuffer) {
+        handleText(new TextDecoder().decode(data));
+      } else if (data && typeof (data as Blob).text === "function") {
+        void (data as Blob).text().then(handleText).catch(() => undefined);
+      }
+    };
   });
 }
 
