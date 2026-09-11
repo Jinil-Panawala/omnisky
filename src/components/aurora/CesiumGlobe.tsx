@@ -77,7 +77,8 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
         credit: "© OpenStreetMap contributors, © CARTO",
       })
     );
-    labels.alpha = 0.35;
+    labels.alpha = 0.18;
+    labels.brightness = 0.7;
     labels.saturation = 0.2;
 
     const scene = viewer.scene;
