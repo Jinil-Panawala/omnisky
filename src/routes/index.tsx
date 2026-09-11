@@ -253,7 +253,13 @@ function Index() {
           <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
           {panels.filters && (
             <div className="hidden lg:flex shrink-0">
-              <FiltersPanel filters={filters} onChange={setFilters} />
+              <FiltersPanel
+                filters={filters}
+                onChange={setFilters}
+                affiliationOptions={facets.affiliations}
+                classificationOptions={facets.classifications}
+              />
+
             </div>
           )}
           <div className="flex-1 min-w-[360px] relative">
