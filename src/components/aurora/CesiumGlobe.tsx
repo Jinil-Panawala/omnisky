@@ -32,8 +32,10 @@ const entityColors: Record<EntityType, string> = {
 
 const NIGHT_LIGHTS =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg";
-const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png";
-const STREET_MAP = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const DARK_LABELS =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
+const STREET_MAP =
+  "https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png";
 
 type BaseMapMode = "lights" | "map";
 
@@ -52,7 +54,7 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
 
   useEffect(() => {
     if (!ready) return;
-    if (labelsLayerRef.current) labelsLayerRef.current.show = baseMap === "lights";
+    if (labelsLayerRef.current) labelsLayerRef.current.show = true;
     if (streetLayerRef.current) streetLayerRef.current.show = baseMap === "map";
   }, [baseMap, ready]);
 
@@ -83,29 +85,29 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
       shouldAnimate: true,
     });
 
+    const street = viewer.imageryLayers.addImageryProvider(
+      new UrlTemplateImageryProvider({
+        url: STREET_MAP,
+        maximumLevel: 18,
+        credit: "© OpenStreetMap contributors, © CARTO",
+      })
+    );
+    street.show = false;
+    street.brightness = 0.4;
+    street.contrast = 1.05;
+    street.saturation = 0.25;
+    streetLayerRef.current = street;
+
     const labels = viewer.imageryLayers.addImageryProvider(
       new UrlTemplateImageryProvider({
         url: DARK_LABELS,
-        maximumLevel: 14,
-        credit: "© OpenStreetMap contributors, © CARTO",
+        maximumLevel: 16,
+        credit: "Esri",
       })
     );
     labels.alpha = 0.95;
     labels.brightness = 1.6;
     labelsLayerRef.current = labels;
-
-    const street = viewer.imageryLayers.addImageryProvider(
-      new UrlTemplateImageryProvider({
-        url: STREET_MAP,
-        maximumLevel: 18,
-        credit: "© OpenStreetMap contributors",
-      })
-    );
-    street.show = false;
-    street.brightness = 0.35;
-    street.contrast = 1.05;
-    street.saturation = 0.25;
-    streetLayerRef.current = street;
 
     const scene = viewer.scene;
     scene.backgroundColor = Color.fromCssColorString("#04070f");
