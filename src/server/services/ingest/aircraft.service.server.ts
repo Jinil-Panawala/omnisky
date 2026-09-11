@@ -85,8 +85,7 @@ const MAX_AIRCRAFT = 20000;
 // out — a few pulls in, the whole map is populated.
 const REGIONS_PER_PULL = 3;
 const REGION_PACE_MS = 2000;
-const POSITION_TTL_MS = 30 * 60 * 1000;
-const BATCH = 500;
+const HISTORY_SAMPLE_CAP = 500;
 export const AIRCRAFT_SOURCE = "adsb.lol";
 
 interface AircraftRow {
