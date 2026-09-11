@@ -48,10 +48,9 @@ export function getEntityById(id: string, type?: EntityType): Entity | undefined
   return undefined;
 }
 
-export function getNearbyEntities(entity: Entity, limit = 3): NearbyEntity[] {
-  const all: Entity[] = [...aircraft, ...vessels, ...satellites, ...launches].filter(
-    (e) => e.id !== entity.id
-  );
+export function getNearbyEntities(entity: Entity, limit = 3, pool?: Entity[]): NearbyEntity[] {
+  const source: Entity[] = pool ?? [...aircraft, ...vessels, ...satellites, ...launches];
+  const all: Entity[] = source.filter((e) => e.id !== entity.id);
   const withDistance = all
     .map((e) => ({
       id: e.id,
