@@ -99,13 +99,13 @@ export interface LodConfig {
 }
 
 const LEVELS: Array<{ minHeightM: number } & LodConfig> = [
-  { minHeightM: 12_000_000, cellDeg: 18, minClusterSize: 3, maxIndividual: 250, minPriority: 2, labels: "none" },
-  { minHeightM: 7_000_000, cellDeg: 10, minClusterSize: 3, maxIndividual: 400, minPriority: 2, labels: "none" },
-  { minHeightM: 4_000_000, cellDeg: 5, minClusterSize: 3, maxIndividual: 700, minPriority: 1, labels: "none" },
-  { minHeightM: 2_000_000, cellDeg: 2.5, minClusterSize: 4, maxIndividual: 1200, minPriority: 1, labels: "priority" },
-  { minHeightM: 1_000_000, cellDeg: 1.2, minClusterSize: 5, maxIndividual: 2000, minPriority: 0, labels: "priority" },
-  { minHeightM: 400_000, cellDeg: 0.5, minClusterSize: 6, maxIndividual: 3500, minPriority: 0, labels: "priority" },
-  { minHeightM: 150_000, cellDeg: 0.2, minClusterSize: 12, maxIndividual: 5000, minPriority: 0, labels: "all" },
+  { minHeightM: 12_000_000, cellDeg: 30, minClusterSize: 2, maxIndividual: 250, minPriority: 2, labels: "none" },
+  { minHeightM: 7_000_000, cellDeg: 20, minClusterSize: 2, maxIndividual: 400, minPriority: 2, labels: "none" },
+  { minHeightM: 4_000_000, cellDeg: 10, minClusterSize: 3, maxIndividual: 700, minPriority: 1, labels: "none" },
+  { minHeightM: 2_000_000, cellDeg: 5, minClusterSize: 3, maxIndividual: 1200, minPriority: 1, labels: "priority" },
+  { minHeightM: 1_000_000, cellDeg: 2.5, minClusterSize: 4, maxIndividual: 2000, minPriority: 0, labels: "priority" },
+  { minHeightM: 400_000, cellDeg: 1, minClusterSize: 5, maxIndividual: 3500, minPriority: 0, labels: "priority" },
+  { minHeightM: 150_000, cellDeg: 0.35, minClusterSize: 8, maxIndividual: 5000, minPriority: 0, labels: "all" },
   { minHeightM: 0, cellDeg: 0, minClusterSize: 0, maxIndividual: 6000, minPriority: 0, labels: "all" },
 ];
 
