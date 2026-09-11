@@ -6,3 +6,4 @@
 - [ ] Request AISStream API key via secure form
 - [ ] Map UI at / with 4 layers, detail panel, realtime, satellite.js propagation
 - [ ] SEO head tags
+- [ ] Globe: Cesium 3D globe, unit icons, city-lights / map basemap toggle

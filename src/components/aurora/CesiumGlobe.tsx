@@ -13,6 +13,7 @@ import {
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import type { Entity, EntityType, LayerVisibility } from "./types";
+import { entityIconUrl } from "./entityIcons";
 
 interface CesiumGlobeProps {
   entities: Entity[];
@@ -32,16 +33,28 @@ const entityColors: Record<EntityType, string> = {
 const NIGHT_LIGHTS =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg";
 const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png";
+const STREET_MAP = "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+
+type BaseMapMode = "lights" | "map";
 
 export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const entitiesRef = useRef<Entity[]>(entities);
   const onSelectRef = useRef(onSelect);
+  const labelsLayerRef = useRef<ImageryLayer | null>(null);
+  const streetLayerRef = useRef<ImageryLayer | null>(null);
   const [ready, setReady] = useState(false);
+  const [baseMap, setBaseMap] = useState<BaseMapMode>("lights");
 
   entitiesRef.current = entities;
   onSelectRef.current = onSelect;
+
+  useEffect(() => {
+    if (!ready) return;
+    if (labelsLayerRef.current) labelsLayerRef.current.show = baseMap === "lights";
+    if (streetLayerRef.current) streetLayerRef.current.show = baseMap === "map";
+  }, [baseMap, ready]);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -79,6 +92,17 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     );
     labels.alpha = 0.95;
     labels.brightness = 1.6;
+    labelsLayerRef.current = labels;
+
+    const street = viewer.imageryLayers.addImageryProvider(
+      new UrlTemplateImageryProvider({
+        url: STREET_MAP,
+        maximumLevel: 18,
+        credit: "© OpenStreetMap contributors, © CARTO",
+      })
+    );
+    street.show = false;
+    streetLayerRef.current = street;
 
     const scene = viewer.scene;
     scene.backgroundColor = Color.fromCssColorString("#04070f");
@@ -130,21 +154,19 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     viewer.entities.removeAll();
 
     for (const e of visible) {
-      const color = Color.fromCssColorString(entityColors[e.type]);
       const isSelected = e.id === selectedId;
       const heightM = e.type === "satellite" ? 550_000 : e.type === "aircraft" ? 10_000 : 0;
+      const size = isSelected ? 44 : 32;
       viewer.entities.add({
         id: e.id,
         name: e.name,
         position: Cartesian3.fromDegrees(e.lon, e.lat, heightM),
-        point: {
-          pixelSize: isSelected ? 13 : 7,
-          color,
-          outlineColor: isSelected
-            ? Color.fromCssColorString("#e2e8f0")
-            : color.withAlpha(0.35),
-          outlineWidth: isSelected ? 3 : 6,
-          scaleByDistance: new NearFarScalar(1_000_000, 1.6, 30_000_000, 0.7),
+        billboard: {
+          image: entityIconUrl(e.type, entityColors[e.type], isSelected),
+          width: size,
+          height: size,
+          scaleByDistance: new NearFarScalar(1_000_000, 1.35, 30_000_000, 0.75),
+          disableDepthTestDistance: 0,
         },
       });
     }
@@ -170,6 +192,27 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
     <div className="relative h-full w-full bg-surface-1">
       <div ref={containerRef} className="aurora-cesium h-full w-full" />
       <div className="pointer-events-none absolute inset-0 aurora-globe-vignette" />
+      <div className="absolute right-3 top-3 flex overflow-hidden rounded-md border border-console-border bg-surface-1/85 backdrop-blur">
+        {(
+          [
+            { key: "lights", label: "City Lights" },
+            { key: "map", label: "Map" },
+          ] as Array<{ key: BaseMapMode; label: string }>
+        ).map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setBaseMap(opt.key)}
+            className={`px-3 py-1.5 text-[11px] uppercase tracking-wider transition-colors ${
+              baseMap === opt.key
+                ? "bg-primary/20 text-primary"
+                : "text-console-subtle hover:text-console-text"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface-1 text-console-subtle">
           <div className="flex flex-col items-center gap-3">
