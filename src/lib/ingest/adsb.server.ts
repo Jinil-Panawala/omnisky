@@ -120,7 +120,7 @@ function normalise(raw: Array<Record<string, unknown>>): AircraftRow[] {
       updated_at: now,
     }))
     .filter((r) => r.icao24.length > 0);
-  return dedupe(rows, (r) => r.icao24);
+  return dedupe(rows, (r) => r.icao24).slice(0, MAX_AIRCRAFT);
 }
 
 async function fetchRegion(
