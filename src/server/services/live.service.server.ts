@@ -54,11 +54,11 @@ export interface RefreshResult {
 export async function refreshLiveFeeds(): Promise<RefreshResult> {
   const [aircraft, vessels] = await Promise.all([
     runIfStale(SOURCE_KEYS.aircraft, async () => {
-      const { ingestAircraft } = await import("@/server/ingest/adsb.server");
+      const { ingestAircraft } = await import("@/server/services/ingest/aircraft.service.server");
       return (await ingestAircraft()).upserted;
     }),
     runIfStale(SOURCE_KEYS.vessels, async () => {
-      const { ingestVessels } = await import("@/server/ingest/aisstream.server");
+      const { ingestVessels } = await import("@/server/services/ingest/vessels.service.server");
       return (await ingestVessels()).upserted;
     }),
   ]);

@@ -1,7 +1,7 @@
 import { Radar, Search, Bell, Settings, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME } from "@/domain/constants";
 import { cn } from "@/lib/utils";
 
 export type DataMode = "demo" | "live";
