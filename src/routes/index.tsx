@@ -116,8 +116,10 @@ function Index() {
         <CounterStrip counts={counts} />
         <div className="flex flex-1 min-h-0">
           <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
-          <FiltersPanel filters={filters} onChange={setFilters} />
-          <div className="flex-1 min-w-0 relative">
+          <div className="hidden lg:flex shrink-0">
+            <FiltersPanel filters={filters} onChange={setFilters} />
+          </div>
+          <div className="flex-1 min-w-[360px] relative">
             <MapCanvasDynamic
               entities={filteredEntities}
               layers={layers}
@@ -125,12 +127,14 @@ function Index() {
               onSelect={handleSelectEntity}
             />
           </div>
-          <EntityPanel
-            selected={selected}
-            onClose={() => setSelected(null)}
-            onSelectNearby={handleSelectEntity}
-          />
-          <div className="w-72 flex flex-col border-l border-console-border">
+          <div className="hidden 2xl:flex shrink-0">
+            <EntityPanel
+              selected={selected}
+              onClose={() => setSelected(null)}
+              onSelectNearby={handleSelectEntity}
+            />
+          </div>
+          <div className="hidden xl:flex w-72 shrink-0 flex-col border-l border-console-border">
             <div className="flex-1 min-h-0">
               <AlertsPanel alerts={mockDataset.alerts} onSelect={(id) => handleSelectById(id)} />
             </div>
@@ -138,7 +142,7 @@ function Index() {
               <AiInsights insights={mockDataset.insights} />
             </div>
           </div>
-          <div className="w-80 min-w-0">
+          <div className="hidden xl:block w-80 shrink-0">
             <TimelineFeed events={mockDataset.events} onSelect={handleSelectById} />
           </div>
         </div>
