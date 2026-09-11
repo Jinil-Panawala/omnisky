@@ -14,7 +14,7 @@ export function MapCanvasDynamic({ entities, layers, selectedId, onSelect }: Map
   useEffect(() => {
     let cancelled = false;
     import("./MapCanvas").then((mod) => {
-      if (!cancelled) setMapCanvas(() => mod.MapCanvas);
+      if (!cancelled) setMapCanvas(() => mod.MapCanvas as React.ComponentType<MapCanvasDynamicProps>);
     });
     return () => {
       cancelled = true;
