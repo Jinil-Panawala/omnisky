@@ -79,14 +79,26 @@ function toRad(deg: number): number {
   return (deg * Math.PI) / 180;
 }
 
-export function toGeoJSON(entities: Entity[]): GeoJSON.FeatureCollection {
+export function toGeoJSON(entities: Entity[]): {
+  type: "FeatureCollection";
+  features: Array<{
+    type: "Feature";
+    geometry: { type: "Point"; coordinates: [number, number] };
+    properties: {
+      id: string;
+      type: EntityType;
+      name: string;
+      riskScore: number;
+    };
+  }>;
+} {
   return {
     type: "FeatureCollection",
     features: entities.map((e) => ({
       type: "Feature" as const,
       geometry: {
         type: "Point" as const,
-        coordinates: [e.lon, e.lat],
+        coordinates: [e.lon, e.lat] as [number, number],
       },
       properties: {
         id: e.id,
