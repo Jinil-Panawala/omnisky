@@ -1,10 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ClientOnly } from "@/components/ClientOnly";
 import { mockDataset } from "@/data/mock";
 import type { Entity } from "@/data/mock";
 import { useLiveEntities } from "@/hooks/useLiveEntities";
 import { SOURCE_ATTRIBUTION } from "@/lib/entities/canonical";
+import { lodForHeight } from "@/lib/geo/spatial";
+import { getObjectTrack } from "@/lib/live.functions";
+import { generateStressDataset } from "@/lib/dev/synthetic";
+import type { GlobeViewState } from "@/components/console/globe/MapCanvasDynamic";
 import type { DataMode } from "@/components/console/layout/TopBar";
 import {
   TopBar,
@@ -61,12 +67,50 @@ function Index() {
 
   const [selected, setSelected] = useState<SelectedEntity>(null);
   const [mode, setMode] = useState<DataMode>("demo");
+  const [view, setView] = useState<GlobeViewState>({ bounds: null, heightM: 24_000_000 });
 
-  const live = useLiveEntities(mode === "live");
+  // Dev/QA flags: ?stress=1 loads a synthetic 45k-object dataset, ?stats=1 shows metrics.
+  const [flags, setFlags] = useState<{ stress: boolean; stats: boolean; counts: number[] }>({
+    stress: false,
+    stats: false,
+    counts: [20000, 20000, 5000],
+  });
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const num = (k: string, d: number) => Number(params.get(k) ?? d) || d;
+    setFlags({
+      stress: params.get("stress") === "1",
+      stats: params.get("stats") === "1" || params.get("stress") === "1" || import.meta.env.DEV,
+      counts: [num("aircraft", 20000), num("ships", 20000), num("sats", 5000)],
+    });
+  }, []);
+
+  // Ask the backend only for what the current camera can see, with a density
+  // budget derived from the zoom level.
+  const viewport = useMemo(
+    () => ({ bounds: view.bounds, limit: Math.min(8000, lodForHeight(view.heightM).maxIndividual * 3) }),
+    [view]
+  );
+
+  const live = useLiveEntities(mode === "live" && !flags.stress, viewport);
+
+  const stressEntities = useMemo<Entity[]>(
+    () =>
+      flags.stress
+        ? generateStressDataset({
+            aircraft: flags.counts[0]!,
+            ships: flags.counts[1]!,
+            satellites: flags.counts[2]!,
+          })
+        : [],
+    [flags]
+  );
 
   const allEntities = useMemo<Entity[]>(
     () =>
-      mode === "live"
+      flags.stress
+        ? [...stressEntities, ...mockDataset.launches]
+        : mode === "live"
         ? live.entities
         : [
             ...mockDataset.aircraft,
@@ -74,7 +118,7 @@ function Index() {
             ...mockDataset.satellites,
             ...mockDataset.launches,
           ],
-    [mode, live.entities]
+    [mode, live.entities, flags.stress, stressEntities]
   );
 
 
@@ -103,6 +147,24 @@ function Index() {
     }
     return { ...tally, alerts: mockDataset.alerts.length };
   }, [allEntities]);
+
+  const fetchTrack = useServerFn(getObjectTrack);
+  const selectedEntity = selected?.entity;
+  const trackable =
+    mode === "live" && !flags.stress && selectedEntity
+      ? selectedEntity.type === "aircraft"
+        ? { craftType: "aircraft" as const, craftId: selectedEntity.icao24 }
+        : selectedEntity.type === "ship"
+          ? { craftType: "ship" as const, craftId: selectedEntity.mmsi }
+          : null
+      : null;
+
+  const trackQuery = useQuery({
+    queryKey: ["object-track", trackable?.craftType, trackable?.craftId],
+    queryFn: () => fetchTrack({ data: trackable! }),
+    enabled: !!trackable,
+    staleTime: 30000,
+  });
 
   const handleSelectEntity = useCallback((entity: Entity) => {
     setSelected({ entity, source: "map" });
@@ -161,6 +223,10 @@ function Index() {
               layers={layers}
               selectedId={selected?.entity.id ?? null}
               onSelect={handleSelectEntity}
+              onViewChange={setView}
+              track={trackQuery.data?.map((p) => ({ lat: p.lat, lon: p.lon }))}
+              showStats={flags.stats}
+              dataLoading={mode === "live" && live.fetching}
             />
           </div>
           <div className="hidden 2xl:flex shrink-0">

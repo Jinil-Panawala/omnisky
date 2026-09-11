@@ -6,5 +6,9 @@
 - [x] Feed health table + status indicator, source attribution strip
 - [x] Scheduled refreshes (launches + satellites hourly, nightly history cleanup) and on-demand pulls while the map is open
 - [x] Demo / Live toggle wired into the console, live counts, live event feed
+- [x] Scalable rendering: WebGL primitive collections, zoom LOD, grid clustering, priority budget, dev perf overlay
+- [x] Viewport-scoped snapshot queries + lat/lon indexes; selected-object trail from position_history
+- [ ] Server-side clustering / vector tiles for datasets beyond the per-viewport row budget
+- [ ] Watchlists and alert-driven priority
 - [ ] Entity trails / history playback from position_history
 - [ ] Replace mock alerts and AI insights with derived signals

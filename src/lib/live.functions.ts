@@ -68,9 +68,23 @@ export interface LiveSnapshot {
   fetchedAt: string;
 }
 
-const AIRCRAFT_LIMIT = 2000;
-const VESSEL_LIMIT = 2000;
-const SATELLITE_LIMIT = 600;
+/** Viewport-scoped query input; null bounds means "whole globe". */
+export interface SnapshotBounds {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+}
+
+export interface SnapshotInput {
+  bounds?: SnapshotBounds | null;
+  /** Rendering-density budget hint from the client. */
+  limit?: number | null;
+}
+
+const MAX_ROWS = 8000;
+const DEFAULT_ROWS = 3000;
+const SATELLITE_LIMIT = 800;
 const LAUNCH_LIMIT = 60;
 
 async function publicClient() {
@@ -91,24 +105,59 @@ async function publicClient() {
   });
 }
 
-export const getLiveSnapshot = createServerFn({ method: "GET" }).handler(
-  async (): Promise<LiveSnapshot> => {
+interface SpatialFilterable {
+  gte(column: string, value: number): SpatialFilterable;
+  lte(column: string, value: number): SpatialFilterable;
+  or(filter: string): SpatialFilterable;
+}
+
+/**
+ * Applies the spatial predicate. Indexes on (lat, lon) keep the map from
+ * triggering a full table scan on every camera move.
+ */
+function withinBounds<T>(query: T, bounds: SnapshotBounds | null): T {
+  if (!bounds) return query;
+  let q = query as unknown as SpatialFilterable;
+  q = q.gte("lat", bounds.south).lte("lat", bounds.north);
+  q =
+    bounds.west <= bounds.east
+      ? q.gte("lon", bounds.west).lte("lon", bounds.east)
+      : q.or(`lon.gte.${bounds.west},lon.lte.${bounds.east}`);
+  return q as unknown as T;
+}
+
+export const getLiveSnapshot = createServerFn({ method: "GET" })
+  .inputValidator((data: SnapshotInput | undefined): SnapshotInput => data ?? {})
+  .handler(async ({ data }): Promise<LiveSnapshot> => {
     const supabase = await publicClient();
-    const [aircraft, vessels, satellites, launches, sources] = await Promise.all([
+    const bounds = data.bounds ?? null;
+    const rows = Math.min(MAX_ROWS, Math.max(200, data.limit ?? DEFAULT_ROWS));
+
+    const aircraftQuery = withinBounds(
       supabase
         .from("aircraft_positions")
         .select(
           "icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at",
-        )
-        .order("updated_at", { ascending: false })
-        .range(0, AIRCRAFT_LIMIT - 1),
+        ),
+      bounds,
+    )
+      .order("updated_at", { ascending: false })
+      .range(0, rows - 1);
+
+    const vesselQuery = withinBounds(
       supabase
         .from("vessel_positions")
         .select(
           "mmsi, ship_name, lat, lon, speed_kn, course_deg, heading_deg, ship_type, updated_at",
-        )
-        .order("updated_at", { ascending: false })
-        .range(0, VESSEL_LIMIT - 1),
+        ),
+      bounds,
+    )
+      .order("updated_at", { ascending: false })
+      .range(0, rows - 1);
+
+    const [aircraft, vessels, satellites, launches, sources] = await Promise.all([
+      aircraftQuery,
+      vesselQuery,
       supabase
         .from("satellite_tles")
         .select("norad_id, name, tle_line1, tle_line2, category, updated_at")
@@ -135,8 +184,35 @@ export const getLiveSnapshot = createServerFn({ method: "GET" }).handler(
       sources: (sources.data ?? []) as SourceHealthRow[],
       fetchedAt: new Date().toISOString(),
     };
-  },
-);
+  });
+
+export interface TrackPoint {
+  lat: number;
+  lon: number;
+  recorded_at: string;
+}
+
+export interface TrackInput {
+  craftType: "aircraft" | "ship";
+  craftId: string;
+}
+
+/** Recent trail for a single object — only ever fetched for the selection. */
+export const getObjectTrack = createServerFn({ method: "GET" })
+  .inputValidator((data: TrackInput): TrackInput => data)
+  .handler(async ({ data }): Promise<TrackPoint[]> => {
+    const supabase = await publicClient();
+    const { data: rows } = await supabase
+      .from("position_history")
+      .select("lat, lon, recorded_at")
+      .eq("craft_type", data.craftType)
+      .eq("craft_id", data.craftId)
+      .order("recorded_at", { ascending: true })
+      .limit(200);
+    return ((rows ?? []) as Array<{ lat: number | null; lon: number | null; recorded_at: string }>)
+      .filter((r): r is TrackPoint => r.lat != null && r.lon != null)
+      .map((r) => ({ lat: r.lat, lon: r.lon, recorded_at: r.recorded_at }));
+  });
 
 /**
  * Pulls fresh aircraft + vessel data on demand while someone is watching the

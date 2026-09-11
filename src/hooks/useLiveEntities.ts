@@ -28,6 +28,7 @@ export interface LiveState {
   status: FeedStatus;
   lastUpdated: Date | null;
   loading: boolean;
+  fetching: boolean;
   refresh: () => void;
 }
 
@@ -86,18 +87,33 @@ function useSatellitePositions(
   return satellites;
 }
 
-export function useLiveEntities(enabled: boolean): LiveState {
+export interface LiveViewport {
+  bounds: { west: number; south: number; east: number; north: number } | null;
+  limit: number;
+}
+
+export function useLiveEntities(enabled: boolean, viewport?: LiveViewport): LiveState {
   const fetchSnapshot = useServerFn(getLiveSnapshot);
   const triggerRefresh = useServerFn(refreshLiveFeeds);
   const kickedOff = useRef(false);
 
+  // Round the bounds so small camera jitters do not invalidate the cache.
+  const bounds = viewport?.bounds ?? null;
+  const roundedKey = bounds
+    ? [bounds.west, bounds.south, bounds.east, bounds.north].map((v) => Math.round(v * 2) / 2)
+    : null;
+  const limit = viewport?.limit ?? 3000;
+
   const query = useQuery({
-    queryKey: ["live-snapshot"],
-    queryFn: () => fetchSnapshot(),
+    queryKey: ["live-snapshot", roundedKey, limit],
+    queryFn: () => fetchSnapshot({ data: { bounds, limit } }),
     enabled,
     refetchInterval: enabled ? SNAPSHOT_INTERVAL_MS : false,
     staleTime: SNAPSHOT_INTERVAL_MS,
+    // Keep the previous objects on the globe while the new viewport loads.
+    placeholderData: (prev) => prev,
   });
+
 
   // Keep the feeds warm while somebody is watching the map.
   useEffect(() => {
@@ -195,6 +211,7 @@ export function useLiveEntities(enabled: boolean): LiveState {
     status,
     lastUpdated: snapshot ? new Date(snapshot.fetchedAt) : null,
     loading: query.isLoading,
+    fetching: query.isFetching,
     refresh,
   };
 }
