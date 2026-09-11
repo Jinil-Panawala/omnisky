@@ -1,26 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { ClientOnly } from "@/components/ClientOnly";
-
-const LiveMap = lazy(() => import("@/components/LiveMap"));
+import { mockDataset, getEntityById, getCounts } from "@/data/mock";
+import type { Entity, EntityType } from "@/data/mock";
+import { TopBar } from "@/components/aurora/TopBar";
+import { CounterStrip } from "@/components/aurora/CounterStrip";
+import { ControlPanel } from "@/components/aurora/ControlPanel";
+import { FiltersPanel } from "@/components/aurora/FiltersPanel";
+import { EntityPanel } from "@/components/aurora/EntityPanel";
+import { TimelineFeed } from "@/components/aurora/TimelineFeed";
+import { AlertsPanel } from "@/components/aurora/AlertsPanel";
+import { AiInsights } from "@/components/aurora/AiInsights";
+import { MapCanvasDynamic } from "@/components/aurora/MapCanvasDynamic";
+import type { LayerVisibility, Filters, SelectedEntity } from "@/components/aurora/types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Live Tracker — Aircraft, Ships, Satellites & Launches" },
+      { title: "Aurora — Global Air, Sea & Space Intelligence" },
       {
         name: "description",
         content:
-          "Real-time global map of live aircraft, vessels, satellites, and upcoming rocket launches.",
+          "Live intelligence console tracking aircraft, vessels, satellites, and rocket launches across the globe.",
       },
       {
         property: "og:title",
-        content: "Live Tracker — Aircraft, Ships, Satellites & Launches",
+        content: "Aurora — Global Air, Sea & Space Intelligence",
       },
       {
         property: "og:description",
         content:
-          "Real-time global map of live aircraft, vessels, satellites, and upcoming rocket launches.",
+          "Live intelligence console tracking aircraft, vessels, satellites, and rocket launches across the globe.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,23 +40,109 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [layers, setLayers] = useState<LayerVisibility>({
+    aircraft: true,
+    ship: true,
+    satellite: true,
+    launch: true,
+  });
+
+  const [filters, setFilters] = useState<Filters>({
+    search: "",
+    riskRange: [0, 100],
+    affiliations: [],
+    classifications: [],
+  });
+
+  const [selected, setSelected] = useState<SelectedEntity>(null);
+
+  const allEntities = useMemo<Entity[]>(
+    () => [...mockDataset.aircraft, ...mockDataset.ships, ...mockDataset.satellites, ...mockDataset.launches],
+    []
+  );
+
+  const filteredEntities = useMemo(() => {
+    const search = filters.search.trim().toLowerCase();
+    return allEntities.filter((e) => {
+      if (!layers[e.type]) return false;
+      if (e.riskScore < filters.riskRange[0] || e.riskScore > filters.riskRange[1]) return false;
+      if (filters.affiliations.length > 0 && !("affiliation" in e && filters.affiliations.includes(e.affiliation))) return false;
+      if (filters.classifications.length > 0 && !filters.classifications.includes(e.classification)) return false;
+      if (search) {
+        const hay = `${e.name} ${e.id} ${e.type} ${"callsign" in e ? e.callsign : ""} ${"mmsi" in e ? e.mmsi : ""}`.toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+  }, [allEntities, layers, filters]);
+
+  const counts = useMemo(() => getCounts(), []);
+
+  const handleSelectEntity = useCallback((entity: Entity) => {
+    setSelected({ entity, source: "map" });
+  }, []);
+
+  const handleSelectById = useCallback((id: string, type?: EntityType) => {
+    const entity = getEntityById(id, type);
+    if (entity) setSelected({ entity, source: "list" });
+  }, []);
+
+  const handleSearch = useCallback((value: string) => {
+    setFilters((prev) => ({ ...prev, search: value }));
+  }, []);
+
+  const toggleLayer = useCallback((key: keyof LayerVisibility) => {
+    setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    // Placeholder refresh; live data will replace mock dataset later.
+    window.location.reload();
+  }, []);
+
   return (
     <ClientOnly
       fallback={
-        <div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-          Loading live map…
+        <div className="flex h-screen w-screen items-center justify-center bg-console-bg text-console-muted">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-mono uppercase tracking-wider">Loading Aurora console…</span>
+          </div>
         </div>
       }
     >
-      <Suspense
-        fallback={
-          <div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-            Loading live map…
+      <div className="flex flex-col h-screen w-screen overflow-hidden bg-console-bg text-console-text">
+        <TopBar onSearch={handleSearch} />
+        <CounterStrip counts={counts} />
+        <div className="flex flex-1 min-h-0">
+          <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
+          <FiltersPanel filters={filters} onChange={setFilters} />
+          <div className="flex-1 min-w-0 relative">
+            <MapCanvasDynamic
+              entities={filteredEntities}
+              layers={layers}
+              selectedId={selected?.entity.id ?? null}
+              onSelect={handleSelectEntity}
+            />
           </div>
-        }
-      >
-        <LiveMap />
-      </Suspense>
+          <EntityPanel
+            selected={selected}
+            onClose={() => setSelected(null)}
+            onSelectNearby={handleSelectEntity}
+          />
+          <div className="w-72 flex flex-col border-l border-console-border">
+            <div className="flex-1 min-h-0">
+              <AlertsPanel alerts={mockDataset.alerts} onSelect={(id) => handleSelectById(id)} />
+            </div>
+            <div className="flex-1 min-h-0 border-t border-console-border">
+              <AiInsights insights={mockDataset.insights} />
+            </div>
+          </div>
+          <div className="w-80 min-w-0">
+            <TimelineFeed events={mockDataset.events} onSelect={handleSelectById} />
+          </div>
+        </div>
+      </div>
     </ClientOnly>
   );
 }

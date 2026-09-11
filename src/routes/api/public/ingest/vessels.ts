@@ -41,22 +41,21 @@ interface AisMessage {
   };
 }
 
-async function collectVessels(apiKey: string): Promise<
-  Array<{
-    mmsi: string;
-    ship_name: string | null;
-    lat: number;
-    lon: number;
-    speed_kn: number | null;
-    course_deg: number | null;
-    heading_deg: number | null;
-    ship_type: string | null;
-    updated_at: string;
-  }>
-> {
+interface VesselRow {
+  mmsi: string;
+  ship_name: string | null;
+  lat: number;
+  lon: number;
+  speed_kn: number | null;
+  course_deg: number | null;
+  heading_deg: number | null;
+  ship_type: string | null;
+  updated_at: string;
+}
+
+async function collectVessels(apiKey: string): Promise<VesselRow[]> {
   return new Promise((resolve) => {
-    const vessels = new Map<string, (typeof rows)[number]>();
-    const rows: Array<never> = [];
+    const vessels = new Map<string, VesselRow>();
     let ws: WebSocket;
     try {
       ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
@@ -132,63 +131,64 @@ async function collectVessels(apiKey: string): Promise<
   });
 }
 
+async function handlePost({ request }: { request: Request }): Promise<Response> {
+  if (!(await authorized(request))) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const apiKey = process.env["AISSTREAM_API_KEY"];
+  if (!apiKey) {
+    return Response.json(
+      { ok: false, error: "AISSTREAM_API_KEY not configured" },
+      { status: 503 },
+    );
+  }
+  try {
+    const rows = await collectVessels(apiKey);
+    if (rows.length === 0) {
+      return Response.json({ ok: true, upserted: 0 });
+    }
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { error } = await supabaseAdmin
+      .from("vessel_positions")
+      .upsert(rows, { onConflict: "mmsi" });
+    if (error) throw new Error(error.message);
+
+    await supabaseAdmin.from("position_history").insert(
+      rows.slice(0, 200).map((r) => ({
+        craft_type: "vessel" as const,
+        craft_id: r.mmsi,
+        lat: r.lat,
+        lon: r.lon,
+        altitude_m: null,
+        speed: r.speed_kn,
+      })),
+    );
+
+    await supabaseAdmin
+      .from("vessel_positions")
+      .delete()
+      .lt(
+        "updated_at",
+        new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      );
+
+    return Response.json({ ok: true, upserted: rows.length });
+  } catch (e) {
+    console.error("vessel ingest error", e);
+    return Response.json(
+      { ok: false, error: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
+  }
+}
+
 export const Route = createFileRoute("/api/public/ingest/vessels")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        if (!(await authorized(request))) {
-          return new Response("Unauthorized", { status: 401 });
-        }
-        const apiKey = process.env["AISSTREAM_API_KEY"];
-        if (!apiKey) {
-          return Response.json(
-            { ok: false, error: "AISSTREAM_API_KEY not configured" },
-            { status: 503 },
-          );
-        }
-        try {
-          const rows = await collectVessels(apiKey);
-          if (rows.length === 0) {
-            return Response.json({ ok: true, upserted: 0 });
-          }
-          const { supabaseAdmin } = await import(
-            "@/integrations/supabase/client.server"
-          );
-          const { error } = await supabaseAdmin
-            .from("vessel_positions")
-            .upsert(rows, { onConflict: "mmsi" });
-          if (error) throw new Error(error.message);
-
-          await supabaseAdmin.from("position_history").insert(
-            rows.slice(0, 200).map((r) => ({
-              craft_type: "vessel",
-              craft_id: r.mmsi,
-              lat: r.lat,
-              lon: r.lon,
-              altitude_m: null,
-              speed: r.speed_kn,
-            })),
-          );
-
-          await supabaseAdmin
-            .from("vessel_positions")
-            .delete()
-            .lt(
-              "updated_at",
-              new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            );
-
-          return Response.json({ ok: true, upserted: rows.length });
-        } catch (e) {
-          console.error("vessel ingest error", e);
-          return Response.json(
-            { ok: false, error: e instanceof Error ? e.message : String(e) },
-            { status: 500 },
-          );
-        }
-      },
-      GET: async ({ request }) =>
-        Route.options.server!.handlers!.POST!({ request } as never),
+      POST: handlePost,
+      GET: handlePost,
     },
   },
 });
