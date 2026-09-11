@@ -19,7 +19,7 @@ async function authorized(request: Request): Promise<boolean> {
   );
 }
 
-async function handlePost(request: Request): Promise<Response> {
+async function handlePost({ request }: { request: Request }): Promise<Response> {
   if (!(await authorized(request))) {
     return new Response("Unauthorized", { status: 401 });
   }
@@ -42,16 +42,16 @@ async function handlePost(request: Request): Promise<Response> {
     const list = (data.ac ?? [])
       .filter(
         (a) =>
-          typeof a.lat === "number" && typeof a.lon === "number",
+          typeof a["lat"] === "number" && typeof a["lon"] === "number",
       )
       .slice(0, MAX_AIRCRAFT);
 
     const rows = list.map((a) => ({
-      icao24: String(a.hex ?? ""),
+      icao24: String(a["hex"] ?? ""),
       callsign:
-        typeof a.flight === "string" ? a.flight.trim() : null,
-      lat: a.lat as number,
-      lon: a.lon as number,
+        typeof a["flight"] === "string" ? (a["flight"] as string).trim() : null,
+      lat: a["lat"] as number,
+      lon: a["lon"] as number,
       altitude_m:
         typeof a["alt_baro"] === "number"
           ? (a["alt_baro"] as number) * 0.3048
