@@ -226,7 +226,7 @@ export async function ingestAircraft(): Promise<IngestResult> {
     await supabaseAdmin
       .from("aircraft_positions")
       .delete()
-      .lt("updated_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+      .lt("updated_at", new Date(Date.now() - POSITION_TTL_MS).toISOString());
 
     await recordSourceHealth(AIRCRAFT_SOURCE, { rows: upserted });
     return { source: AIRCRAFT_SOURCE, upserted };
