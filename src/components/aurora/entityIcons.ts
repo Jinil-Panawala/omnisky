@@ -23,8 +23,8 @@ export function entityIconUrl(type: EntityType, color: string, selected: boolean
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
   <defs>
     <filter id="g" x="-60%" y="-60%" width="220%" height="220%">
-      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="${color}" flood-opacity="0.95"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="${color}" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="1.6" flood-color="${color}" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="${color}" flood-opacity="0.35"/>
     </filter>
   </defs>
   <g filter="url(#g)" transform="translate(8 8) scale(2)" fill="none" stroke="${stroke}" stroke-width="${selected ? 2.6 : 2}" stroke-linecap="round" stroke-linejoin="round">
