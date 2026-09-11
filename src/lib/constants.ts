@@ -1,1 +1,1 @@
-export const APP_NAME = "Aurora";
+export const APP_NAME = "OmniSky";
