@@ -162,6 +162,24 @@ function Index() {
     return { ...tally, alerts: mockDataset.alerts.length };
   }, [allEntities]);
 
+  // Filter choices come from the data actually in play, with live counts.
+  const facets = useMemo(() => {
+    const aff = new Map<string, number>();
+    const cls = new Map<string, number>();
+    for (const e of allEntities) {
+      if (!layers[e.type]) continue;
+      if ("affiliation" in e && e.affiliation) aff.set(e.affiliation, (aff.get(e.affiliation) ?? 0) + 1);
+      if (e.classification) cls.set(e.classification, (cls.get(e.classification) ?? 0) + 1);
+    }
+    const top = (m: Map<string, number>) =>
+      [...m.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 20)
+        .map(([value, count]) => ({ value, count }));
+    return { affiliations: top(aff), classifications: top(cls) };
+  }, [allEntities, layers]);
+
+
   const fetchTrack = useServerFn(getObjectTrack);
   const selectedEntity = selected?.entity;
   const trackable =
@@ -235,7 +253,13 @@ function Index() {
           <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
           {panels.filters && (
             <div className="hidden lg:flex shrink-0">
-              <FiltersPanel filters={filters} onChange={setFilters} />
+              <FiltersPanel
+                filters={filters}
+                onChange={setFilters}
+                affiliationOptions={facets.affiliations}
+                classificationOptions={facets.classifications}
+              />
+
             </div>
           )}
           <div className="flex-1 min-w-[360px] relative">
