@@ -211,7 +211,7 @@
   border-color: var(--color-console-border-subtle);
 }
 
-.aurora-starfield {
+.globe-starfield {
   background-color: #04070f;
   background-image:
     radial-gradient(1px 1px at 12% 22%, rgba(226, 232, 240, 0.75), transparent 60%),
@@ -224,6 +224,6 @@
     radial-gradient(1.5px 1.5px at 70% 10%, rgba(226, 232, 240, 0.4), transparent 60%);
 }
 
-.aurora-globe-vignette {
+.globe-vignette {
   background: radial-gradient(circle at 50% 48%, transparent 42%, rgba(4, 7, 15, 0.55) 78%);
 }
