@@ -18,7 +18,7 @@ export function TopBar({ onSearch }: TopBarProps) {
           <h1 className="text-sm font-semibold tracking-wide text-console-text uppercase">
             {APP_NAME}
           </h1>
-          <p className="text-[10px] text-console-dim font-mono">GLOBAL SITUATION DISPLAY</p>
+          <p className="text-[10px] text-console-dim font-mono">See the world in motion</p>
         </div>
       </div>
 

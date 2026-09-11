@@ -17,7 +17,7 @@ import type { LayerVisibility, Filters, SelectedEntity } from "@/components/auro
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Aurora — Global Air, Sea & Space Intelligence" },
+      { title: "OmniSky — Global Air, Sea & Space Intelligence" },
       {
         name: "description",
         content:
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:title",
-        content: "Aurora — Global Air, Sea & Space Intelligence",
+        content: "OmniSky — Global Air, Sea & Space Intelligence",
       },
       {
         property: "og:description",
@@ -106,7 +106,7 @@ function Index() {
         <div className="flex h-screen w-screen items-center justify-center bg-console-bg text-console-muted">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-mono uppercase tracking-wider">Loading Aurora console…</span>
+            <span className="text-xs font-mono uppercase tracking-wider">Loading OmniSky console…</span>
           </div>
         </div>
       }
