@@ -87,6 +87,16 @@ export function CesiumGlobe({
   const onViewChangeRef = useRef(onViewChange);
   const labelsLayerRef = useRef<ImageryLayer | null>(null);
   const streetLayerRef = useRef<ImageryLayer | null>(null);
+  // Smoothed movement: display positions eased/dead-reckoned between fixes.
+  const motionRef = useRef(new MotionStore());
+  const animatedRef = useRef<
+    Array<{
+      id: string;
+      heightM: number;
+      billboard: { position: Cartesian3 };
+      label?: { position: Cartesian3 } | undefined;
+    }>
+  >([]);
 
   const [ready, setReady] = useState(false);
   const [baseMap, setBaseMap] = useState<BaseMapMode>("lights");
