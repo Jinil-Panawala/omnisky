@@ -33,16 +33,28 @@ const entityColors: Record<EntityType, string> = {
 const NIGHT_LIGHTS =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg";
 const DARK_LABELS = "https://a.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png";
+const STREET_MAP = "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+
+type BaseMapMode = "lights" | "map";
 
 export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const entitiesRef = useRef<Entity[]>(entities);
   const onSelectRef = useRef(onSelect);
+  const labelsLayerRef = useRef<ImageryLayer | null>(null);
+  const streetLayerRef = useRef<ImageryLayer | null>(null);
   const [ready, setReady] = useState(false);
+  const [baseMap, setBaseMap] = useState<BaseMapMode>("lights");
 
   entitiesRef.current = entities;
   onSelectRef.current = onSelect;
+
+  useEffect(() => {
+    if (!ready) return;
+    if (labelsLayerRef.current) labelsLayerRef.current.show = baseMap === "lights";
+    if (streetLayerRef.current) streetLayerRef.current.show = baseMap === "map";
+  }, [baseMap, ready]);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
