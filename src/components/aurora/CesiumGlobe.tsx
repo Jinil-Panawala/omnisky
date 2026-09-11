@@ -89,7 +89,7 @@ export function CesiumGlobe({ entities, layers, selectedId, onSelect }: CesiumGl
       new UrlTemplateImageryProvider({
         url: STREET_MAP,
         maximumLevel: 18,
-        credit: "© OpenStreetMap contributors, © CARTO",
+        credit: "© OpenStreetMap contributors",
       })
     );
     street.show = false;
