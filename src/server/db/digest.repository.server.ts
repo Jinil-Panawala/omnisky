@@ -2,6 +2,7 @@
  * Query layer for the daily digest: what happened in the last 24 hours, who
  * subscribed, and what has already been delivered.
  */
+import type { Json } from "@/integrations/supabase/types";
 import { getAdminClient } from "./client.server";
 
 export interface DigestSourceRow {
@@ -17,7 +18,7 @@ export interface DigestRecord {
   digest_date: string;
   headline: string;
   summary: string;
-  highlights: Record<string, unknown>[];
+  highlights: Json;
 }
 
 export interface Subscriber {
@@ -60,7 +61,7 @@ export async function saveDigest(record: {
   digest_date: string;
   headline: string;
   summary: string;
-  highlights: Record<string, unknown>[];
+  highlights: Json;
   ai_generated: boolean;
 }): Promise<void> {
   const client = await getAdminClient();
