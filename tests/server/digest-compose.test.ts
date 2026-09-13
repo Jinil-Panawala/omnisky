@@ -17,7 +17,7 @@ describe("composeDigest", () => {
 
   const rows: DigestSourceRow[] = [
     {
-      id: "1",
+      kind: "alert",
       category: "dark-vessel",
       severity: "critical",
       title: "Vessel ABC went dark",
@@ -25,7 +25,7 @@ describe("composeDigest", () => {
       detected_at: new Date().toISOString(),
     },
     {
-      id: "2",
+      kind: "alert",
       category: "high-altitude",
       severity: "warning",
       title: "Aircraft at 18 km",
@@ -33,14 +33,14 @@ describe("composeDigest", () => {
       detected_at: new Date().toISOString(),
     },
     {
-      id: 3 as unknown as string,
+      kind: "insight",
       category: "hotspot",
       severity: "info",
       title: "Dense traffic over Europe",
       description: "25 aircraft in one cell",
       detected_at: new Date().toISOString(),
     },
-  ] as DigestSourceRow[];
+  ];
 
   it("falls back to rule-written wording when no AI key is configured", async () => {
     const digest = await composeDigest(rows, { aircraft: 7_839, vessels: 412 });
@@ -59,7 +59,7 @@ describe("composeDigest", () => {
 
   it("ranks highlights critical first and caps at six", async () => {
     const many: DigestSourceRow[] = Array.from({ length: 10 }, (_, i) => ({
-      id: String(i),
+      kind: "alert",
       category: "dark-vessel",
       severity: i % 3 === 0 ? "critical" : i % 3 === 1 ? "warning" : "info",
       title: `Item ${i}`,
