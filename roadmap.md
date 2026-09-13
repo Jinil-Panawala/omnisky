@@ -14,4 +14,7 @@
 - [ ] Server-side clustering / vector tiles for datasets beyond the per-viewport row budget
 - [ ] Watchlists and alert-driven priority
 - [ ] Entity trails / history playback from position_history
-- [ ] Replace mock alerts and AI insights with derived signals
+- [ ] Replace mock alerts and AI insights with derived signals + AI wording
+- [ ] Accounts (email + Google sign-in) with profiles
+- [ ] Daily curated AI digest email for subscribed users
+- [ ] Codebase-wide simplification / cleanup pass
