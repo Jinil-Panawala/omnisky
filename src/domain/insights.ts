@@ -104,15 +104,6 @@ export interface AircraftRow {
   updated_at: string;
 }
 
-export interface VesselRow {
-  mmsi: string;
-  ship_name: string | null;
-  lat: number | null;
-  lon: number | null;
-  speed_kn: number | null;
-  updated_at: string;
-}
-
 /** Last known history fix for a vessel, used to spot AIS drop-outs. */
 export interface VesselLastSeen {
   mmsi: string;
