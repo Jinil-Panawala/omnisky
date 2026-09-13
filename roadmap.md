@@ -30,3 +30,4 @@
 - [x] Unit tests for detection rules and geo helpers (bun run test)
 - [ ] Email delivery of the digest — waiting on a verified sender domain
 - [x] UI component tests (panels, counters, feed, console shell) with Testing Library
+- [ ] Decide on `supabase/` folder location (CLI expects root; `src/integrations/supabase/` is generated client code)
