@@ -3,7 +3,7 @@ import type { InsightSeverity } from "./types";
 /** Tunable thresholds — one place for a new developer to adjust sensitivity. */
 export const INSIGHT_RULES = {
   /** Aircraft loitering: circling inside a small radius for a long while. */
-  loitering: { minPoints: 8, maxRadiusKm: 28, minMinutes: 40 },
+  loitering: { minPoints: 5, maxRadiusKm: 28, minMinutes: 20 },
   /** Vessels last seen underway that have since gone quiet on AIS. */
   dark: { minQuietMinutes: 35, maxQuietMinutes: 180, maxReports: 6 },
   /**
@@ -18,6 +18,8 @@ export const INSIGHT_RULES = {
     maxAltitudeSpreadM: 1200,
     maxHeadingSpreadDeg: 30,
   },
+  /** Aircraft far above airline cruise altitude. */
+  highAltitude: { minAltitudeM: 14000, maxReports: 3 },
   /** Busiest patches of airspace right now — situational context, not a threat. */
   hotspot: { cellDeg: 2, minCount: 25, maxReports: 2 },
   /** Global aircraft-count change versus the previous run. */

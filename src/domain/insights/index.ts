@@ -18,6 +18,7 @@ export { detectHotspots } from "./detectors/hotspots";
 export { detectFormations } from "./detectors/formations";
 export { detectLaunchWindows } from "./detectors/launch-windows";
 export { detectActivitySpike } from "./detectors/activity";
+export { detectHighAltitude } from "./detectors/high-altitude";
 
 import { INSIGHT_RULES, INSIGHT_SEVERITY_RANK } from "./rules";
 import type { InsightCandidate } from "./types";

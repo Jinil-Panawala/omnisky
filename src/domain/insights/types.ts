@@ -9,7 +9,8 @@ export type InsightCategory =
   | "activity"
   | "formation"
   | "launch"
-  | "hotspot";
+  | "hotspot"
+  | "altitude";
 
 /** A detected situation, before the AI wording pass. */
 export interface InsightCandidate {
@@ -34,6 +35,7 @@ export interface InsightRecord {
   entity_id: string | null;
   title: string;
   description: string;
+  signal: Record<string, unknown> | null;
   ai_generated: boolean;
   detected_at: string;
 }
