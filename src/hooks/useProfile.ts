@@ -4,14 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Profile {
   id: string;
   display_name: string | null;
+  /** Storage path inside the private `avatars` bucket. */
   avatar_url: string | null;
   digest_enabled: boolean;
   digest_hour_utc: number;
 }
 
-/** Reads and updates the signed-in user's own profile row. */
+/** Reads and updates the signed-in user's own profile row and picture. */
 export function useProfile(userId: string | undefined) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -21,7 +23,17 @@ export function useProfile(userId: string | undefined) {
       .select("id, display_name, avatar_url, digest_enabled, digest_hour_utc")
       .eq("id", userId)
       .maybeSingle();
-    if (data) setProfile(data as Profile);
+    if (!data) return;
+    setProfile(data as Profile);
+    // The bucket is private, so the picture is shown through a short-lived link.
+    if (data.avatar_url) {
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(data.avatar_url, 3600);
+      setAvatarSrc(signed?.signedUrl ?? null);
+    } else {
+      setAvatarSrc(null);
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -46,11 +58,10 @@ export function useProfile(userId: string | undefined) {
       const path = `${userId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "")}`;
       const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
       if (error) return;
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      await save({ avatar_url: data.publicUrl });
+      await save({ avatar_url: path });
     },
     [userId, save],
   );
 
-  return { profile, saving, save, uploadAvatar, reload: load };
+  return { profile, avatarSrc, saving, save, uploadAvatar, reload: load };
 }
