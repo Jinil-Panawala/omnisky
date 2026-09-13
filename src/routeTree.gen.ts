@@ -14,6 +14,7 @@ import { Route as ApiPublicIngestAircraftRouteImport } from './routes/api/public
 import { Route as ApiPublicIngestLaunchesRouteImport } from './routes/api/public/ingest/launches'
 import { Route as ApiPublicIngestSatellitesRouteImport } from './routes/api/public/ingest/satellites'
 import { Route as ApiPublicIngestVesselsRouteImport } from './routes/api/public/ingest/vessels'
+import { Route as ApiPublicInsightsRunRouteImport } from './routes/api/public/insights/run'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,6 +42,11 @@ const ApiPublicIngestVesselsRoute = ApiPublicIngestVesselsRouteImport.update({
   path: '/api/public/ingest/vessels',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicInsightsRunRoute = ApiPublicInsightsRunRouteImport.update({
+  id: '/api/public/insights/run',
+  path: '/api/public/insights/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -48,6 +54,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
   '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
   '/api/public/ingest/vessels': typeof ApiPublicIngestVesselsRoute
+  '/api/public/insights/run': typeof ApiPublicInsightsRunRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -55,6 +62,7 @@ export interface FileRoutesByTo {
   '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
   '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
   '/api/public/ingest/vessels': typeof ApiPublicIngestVesselsRoute
+  '/api/public/insights/run': typeof ApiPublicInsightsRunRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -63,6 +71,7 @@ export interface FileRoutesById {
   '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
   '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
   '/api/public/ingest/vessels': typeof ApiPublicIngestVesselsRoute
+  '/api/public/insights/run': typeof ApiPublicInsightsRunRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/api/public/ingest/launches'
     | '/api/public/ingest/satellites'
     | '/api/public/ingest/vessels'
+    | '/api/public/insights/run'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -79,6 +89,7 @@ export interface FileRouteTypes {
     | '/api/public/ingest/launches'
     | '/api/public/ingest/satellites'
     | '/api/public/ingest/vessels'
+    | '/api/public/insights/run'
   id:
     | '__root__'
     | '/'
@@ -86,6 +97,7 @@ export interface FileRouteTypes {
     | '/api/public/ingest/launches'
     | '/api/public/ingest/satellites'
     | '/api/public/ingest/vessels'
+    | '/api/public/insights/run'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +106,7 @@ export interface RootRouteChildren {
   ApiPublicIngestLaunchesRoute: typeof ApiPublicIngestLaunchesRoute
   ApiPublicIngestSatellitesRoute: typeof ApiPublicIngestSatellitesRoute
   ApiPublicIngestVesselsRoute: typeof ApiPublicIngestVesselsRoute
+  ApiPublicInsightsRunRoute: typeof ApiPublicInsightsRunRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -133,6 +146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIngestVesselsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/insights/run': {
+      id: '/api/public/insights/run'
+      path: '/api/public/insights/run'
+      fullPath: '/api/public/insights/run'
+      preLoaderRoute: typeof ApiPublicInsightsRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -142,6 +162,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIngestLaunchesRoute: ApiPublicIngestLaunchesRoute,
   ApiPublicIngestSatellitesRoute: ApiPublicIngestSatellitesRoute,
   ApiPublicIngestVesselsRoute: ApiPublicIngestVesselsRoute,
+  ApiPublicInsightsRunRoute: ApiPublicInsightsRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
