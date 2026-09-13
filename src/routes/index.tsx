@@ -84,7 +84,7 @@ function Index() {
   const viewport = useMemo(
     () => ({
       bounds: view.bounds,
-      limit: Math.min(SNAPSHOT_LIMITS.max, lodForHeight(view.heightM).maxIndividual * 3),
+      limit: Math.min(SNAPSHOT_LIMITS.maxRows, lodForHeight(view.heightM).maxIndividual * 3),
     }),
     [view],
   );
