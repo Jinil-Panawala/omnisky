@@ -1,4 +1,5 @@
 import { Radar, Search, Bell, Settings, User } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/domain/constants";
@@ -98,8 +99,15 @@ export function TopBar({
         <Button variant="ghost" size="icon" className="text-console-muted hover:text-console-text hover:bg-console-panel-raised">
           <Settings className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="text-console-muted hover:text-console-text hover:bg-console-panel-raised">
-          <User className="w-4 h-4" />
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="text-console-muted hover:text-console-text hover:bg-console-panel-raised"
+        >
+          <Link to="/account" aria-label="Your account">
+            <User className="w-4 h-4" />
+          </Link>
         </Button>
       </div>
     </header>
