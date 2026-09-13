@@ -34,7 +34,7 @@ export const Route = createFileRoute("/account")({
 function AccountPage() {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
-  const { profile, saving, save, uploadAvatar } = useProfile(user?.id);
+  const { profile, avatarSrc, saving, save, uploadAvatar } = useProfile(user?.id);
   const digest = useDailyDigest(!!user);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -82,8 +82,8 @@ function AccountPage() {
 
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full overflow-hidden bg-console-bg border border-console-border-subtle flex items-center justify-center text-console-dim text-sm">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="Your profile picture" className="w-full h-full object-cover" />
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="Your profile picture" className="w-full h-full object-cover" />
               ) : (
                 (displayName || user.email || "?").slice(0, 1).toUpperCase()
               )}
