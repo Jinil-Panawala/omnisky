@@ -18,6 +18,16 @@ describe("useConsoleSettings", () => {
     expect(result.current.settings).toEqual(DEFAULT_CONSOLE_SETTINGS);
   });
 
+  it("returns defaults and ignores updates when disabled (signed out)", () => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ refreshIntervalMs: 60_000 }));
+    const { result } = renderHook(() => useConsoleSettings(false));
+    expect(result.current.settings).toEqual(DEFAULT_CONSOLE_SETTINGS);
+    act(() => result.current.updateSettings({ refreshIntervalMs: 10_000 }));
+    expect(result.current.settings.refreshIntervalMs).toBe(
+      DEFAULT_CONSOLE_SETTINGS.refreshIntervalMs,
+    );
+  });
+
   it("persists updates to localStorage", () => {
     const { result } = renderHook(() => useConsoleSettings());
     act(() => result.current.updateSettings({ refreshIntervalMs: 60_000 }));
