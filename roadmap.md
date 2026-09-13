@@ -22,3 +22,10 @@
 - [ ] Click an AI insight / alert to fly the globe to that location
 - [ ] Make Active Alerts populate reliably (explain the panel, widen detection)
 - Clicking an object on the globe must open its details panel (currently hidden below 2xl screens)
+
+- [x] Accounts (email + Google) and profile page with avatar + digest preference
+- [x] Daily AI digest table, compose service, run endpoint, 07:00 UTC schedule
+- [x] Clicking an object opens details on every screen size
+- [x] Click an insight/alert to fly the globe there
+- [x] Unit tests for detection rules and geo helpers (bun run test)
+- [ ] Email delivery of the digest — waiting on a verified sender domain
