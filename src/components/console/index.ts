@@ -6,6 +6,7 @@ export { FiltersPanel } from "./layout/FiltersPanel";
 export { PanelToggles, type PanelVisibility } from "./layout/PanelToggles";
 export { ConsoleLoading } from "./layout/ConsoleLoading";
 export { ConsoleFooter } from "./layout/ConsoleFooter";
+export { SettingsMenu } from "./layout/SettingsMenu";
 
 export { MapCanvasDynamic, type CameraFocus, type GlobeViewState } from "./globe/MapCanvasDynamic";
 export { entityIconUrl } from "./globe/entity-icons";
