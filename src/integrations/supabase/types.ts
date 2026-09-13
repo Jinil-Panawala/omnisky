@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_digests: {
+        Row: {
+          ai_generated: boolean
+          created_at: string
+          digest_date: string
+          headline: string
+          highlights: Json
+          id: string
+          summary: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          created_at?: string
+          digest_date: string
+          headline: string
+          highlights?: Json
+          id?: string
+          summary: string
+        }
+        Update: {
+          ai_generated?: boolean
+          created_at?: string
+          digest_date?: string
+          headline?: string
+          highlights?: Json
+          id?: string
+          summary?: string
+        }
+        Relationships: []
+      }
       data_sources: {
         Row: {
           created_at: string
@@ -86,6 +116,33 @@ export type Database = {
           source_key?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      digest_deliveries: {
+        Row: {
+          created_at: string
+          detail: string | null
+          digest_date: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          digest_date: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          digest_date?: string
+          id?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -251,6 +308,36 @@ export type Database = {
           lon?: number | null
           recorded_at?: string
           speed?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          digest_enabled: boolean
+          digest_hour_utc: number
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          digest_enabled?: boolean
+          digest_hour_utc?: number
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          digest_enabled?: boolean
+          digest_hour_utc?: number
+          display_name?: string | null
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }

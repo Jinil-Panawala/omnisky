@@ -78,6 +78,12 @@ export interface TimelineEvent {
   bookmarked?: boolean;
 }
 
+/** Where on the globe an alert or insight happened, when it is known. */
+export interface GeoPoint {
+  lat: number;
+  lon: number;
+}
+
 export interface ActiveAlert {
   id: string;
   severity: "critical" | "warning" | "info";
@@ -86,15 +92,24 @@ export interface ActiveAlert {
   description: string;
   timestamp: Date;
   entityId: string;
+  location?: GeoPoint | undefined;
 }
 
 export interface AiInsight {
   id: string;
-  category: "loitering" | "dark" | "activity" | "formation" | "launch" | "hotspot";
+  category:
+    | "loitering"
+    | "dark"
+    | "activity"
+    | "formation"
+    | "launch"
+    | "hotspot"
+    | "altitude";
   title: string;
   description: string;
   timestamp: Date;
   severity: "critical" | "warning" | "info";
+  location?: GeoPoint | undefined;
 }
 
 export interface MockDataset {

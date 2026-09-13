@@ -22,7 +22,7 @@ export async function findInsights(limit = 40): Promise<InsightRecord[]> {
   const client = await getPublicClient();
   const { data } = await client
     .from("insights")
-    .select("id, kind, category, severity, entity_type, entity_id, title, description, ai_generated, detected_at")
+    .select("id, kind, category, severity, entity_type, entity_id, title, description, signal, ai_generated, detected_at")
     .gt("expires_at", new Date().toISOString())
     .order("detected_at", { ascending: false })
     .limit(limit);

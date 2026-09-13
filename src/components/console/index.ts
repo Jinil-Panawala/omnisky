@@ -5,7 +5,7 @@ export { ControlPanel } from "./layout/ControlPanel";
 export { FiltersPanel } from "./layout/FiltersPanel";
 export { PanelToggles, type PanelVisibility } from "./layout/PanelToggles";
 
-export { MapCanvasDynamic } from "./globe/MapCanvasDynamic";
+export { MapCanvasDynamic, type CameraFocus, type GlobeViewState } from "./globe/MapCanvasDynamic";
 export { entityIconUrl } from "./globe/entity-icons";
 
 export { EntityPanel } from "./panels/EntityPanel";

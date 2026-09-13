@@ -1,7 +1,7 @@
 /**
  * Read use case for the console: stored insights split into the two panels.
  */
-import type { ActiveAlert, AiInsight } from "@/domain/entities";
+import type { ActiveAlert, AiInsight, GeoPoint } from "@/domain/entities";
 import type { InsightCategory, InsightRecord } from "@/domain/insights";
 import { findInsights } from "@/server/db/insights.repository.server";
 
@@ -10,6 +10,16 @@ export interface InsightFeed {
   insights: AiInsight[];
   generatedAt: string | null;
   aiGenerated: boolean;
+}
+
+/** Detectors record where they fired; the console uses it to fly the camera. */
+function locationOf(row: InsightRecord): GeoPoint | undefined {
+  const signal = row.signal;
+  if (!signal) return undefined;
+  const lat = Number(signal["lat"]);
+  const lon = Number(signal["lon"]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return undefined;
+  return { lat, lon };
 }
 
 function toAlert(row: InsightRecord): ActiveAlert {
@@ -21,6 +31,7 @@ function toAlert(row: InsightRecord): ActiveAlert {
     description: row.description,
     timestamp: new Date(row.detected_at),
     entityId: row.entity_id ?? "",
+    location: locationOf(row),
   };
 }
 
@@ -32,6 +43,7 @@ function toInsight(row: InsightRecord): AiInsight {
     description: row.description,
     timestamp: new Date(row.detected_at),
     severity: row.severity,
+    location: locationOf(row),
   };
 }
 

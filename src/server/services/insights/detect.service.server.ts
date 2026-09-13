@@ -6,6 +6,7 @@ import {
   detectActivitySpike,
   detectDarkVessels,
   detectFormations,
+  detectHighAltitude,
   detectHotspots,
   detectLaunchWindows,
   detectLoitering,
@@ -36,6 +37,7 @@ export async function detectCandidates(baseline: number | null): Promise<Detecti
     ...detectDarkVessels(vesselLastSeen, activeVessels, now),
     ...detectFormations(aircraft, now),
     ...detectLaunchWindows(launches, now),
+    ...detectHighAltitude(aircraft, now),
     ...detectHotspots(aircraft, now),
     ...detectActivitySpike(aircraftCount, baseline, now),
   ];

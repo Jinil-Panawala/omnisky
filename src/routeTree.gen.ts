@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ApiPublicDigestRunRouteImport } from './routes/api/public/digest/run'
 import { Route as ApiPublicIngestAircraftRouteImport } from './routes/api/public/ingest/aircraft'
 import { Route as ApiPublicIngestLaunchesRouteImport } from './routes/api/public/ingest/launches'
 import { Route as ApiPublicIngestSatellitesRouteImport } from './routes/api/public/ingest/satellites'
@@ -19,6 +22,21 @@ import { Route as ApiPublicInsightsRunRouteImport } from './routes/api/public/in
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDigestRunRoute = ApiPublicDigestRunRouteImport.update({
+  id: '/api/public/digest/run',
+  path: '/api/public/digest/run',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicIngestAircraftRoute = ApiPublicIngestAircraftRouteImport.update({
@@ -50,6 +68,9 @@ const ApiPublicInsightsRunRoute = ApiPublicInsightsRunRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
+  '/api/public/digest/run': typeof ApiPublicDigestRunRoute
   '/api/public/ingest/aircraft': typeof ApiPublicIngestAircraftRoute
   '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
   '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
@@ -58,6 +79,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
+  '/api/public/digest/run': typeof ApiPublicDigestRunRoute
   '/api/public/ingest/aircraft': typeof ApiPublicIngestAircraftRoute
   '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
   '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
@@ -67,6 +91,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
+  '/api/public/digest/run': typeof ApiPublicDigestRunRoute
   '/api/public/ingest/aircraft': typeof ApiPublicIngestAircraftRoute
   '/api/public/ingest/launches': typeof ApiPublicIngestLaunchesRoute
   '/api/public/ingest/satellites': typeof ApiPublicIngestSatellitesRoute
@@ -77,6 +104,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
+    | '/auth'
+    | '/api/public/digest/run'
     | '/api/public/ingest/aircraft'
     | '/api/public/ingest/launches'
     | '/api/public/ingest/satellites'
@@ -85,6 +115,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
+    | '/auth'
+    | '/api/public/digest/run'
     | '/api/public/ingest/aircraft'
     | '/api/public/ingest/launches'
     | '/api/public/ingest/satellites'
@@ -93,6 +126,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/account'
+    | '/auth'
+    | '/api/public/digest/run'
     | '/api/public/ingest/aircraft'
     | '/api/public/ingest/launches'
     | '/api/public/ingest/satellites'
@@ -102,6 +138,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
+  AuthRoute: typeof AuthRoute
+  ApiPublicDigestRunRoute: typeof ApiPublicDigestRunRoute
   ApiPublicIngestAircraftRoute: typeof ApiPublicIngestAircraftRoute
   ApiPublicIngestLaunchesRoute: typeof ApiPublicIngestLaunchesRoute
   ApiPublicIngestSatellitesRoute: typeof ApiPublicIngestSatellitesRoute
@@ -116,6 +155,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/digest/run': {
+      id: '/api/public/digest/run'
+      path: '/api/public/digest/run'
+      fullPath: '/api/public/digest/run'
+      preLoaderRoute: typeof ApiPublicDigestRunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ingest/aircraft': {
@@ -158,6 +218,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
+  AuthRoute: AuthRoute,
+  ApiPublicDigestRunRoute: ApiPublicDigestRunRoute,
   ApiPublicIngestAircraftRoute: ApiPublicIngestAircraftRoute,
   ApiPublicIngestLaunchesRoute: ApiPublicIngestLaunchesRoute,
   ApiPublicIngestSatellitesRoute: ApiPublicIngestSatellitesRoute,
