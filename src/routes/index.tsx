@@ -8,6 +8,7 @@ import { useInsightFeed } from "@/hooks/useInsightFeed";
 import { useConsoleFlags } from "@/hooks/useConsoleFlags";
 import { usePanelVisibility } from "@/hooks/usePanelVisibility";
 import { useConsoleSettings } from "@/hooks/useConsoleSettings";
+import { useAuth } from "@/hooks/useAuth";
 import { useConsoleDataset } from "@/hooks/useConsoleDataset";
 import { useSelectedTrack } from "@/hooks/useSelectedTrack";
 import { lodForHeight } from "@/lib/geo/spatial";
@@ -60,7 +61,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { settings, updateSettings } = useConsoleSettings();
+  const { user } = useAuth();
+  const { settings, updateSettings } = useConsoleSettings(!!user);
   const [layers, setLayers] = useState<LayerVisibility>(settings.defaultLayers);
   const [filters, setFilters] = useState<Filters>({
     search: "",
@@ -172,6 +174,7 @@ function Index() {
           lastUpdated={live.lastUpdated}
           settings={settings}
           onSettingsChange={updateSettings}
+          showSettings={!!user}
         />
         <div className="flex items-center border-b border-console-border bg-console-bg">
           <div className="flex-1 min-w-0">
