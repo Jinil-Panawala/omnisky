@@ -46,3 +46,8 @@ src/
 - SQL lives in `server/db` and nowhere else.
 - Anything under `server/` or named `*.server.ts` is blocked from client bundles.
 - New tunable value? Put it in `src/domain/constants.ts`.
+
+Tests live at the repo root in `tests/` (`npm test` runs Vitest):
+rule-level tests next to each concern (`insights.test.ts`, `detectors.test.ts`,
+`spatial.test.ts`, `motion.test.ts`, `adapters.test.ts`) and UI tests under
+`tests/ui/`.
