@@ -50,20 +50,30 @@ function loadSettings(): ConsoleSettings {
   }
 }
 
-export function useConsoleSettings() {
-  const [settings, setSettings] = useState<ConsoleSettings>(loadSettings);
+/**
+ * Console preferences for signed-in users. When `enabled` is false (signed
+ * out), returns the defaults and ignores updates — nothing is read or saved.
+ */
+export function useConsoleSettings(enabled = true) {
+  const [settings, setSettings] = useState<ConsoleSettings>(() =>
+    enabled ? loadSettings() : DEFAULT_CONSOLE_SETTINGS,
+  );
 
-  const updateSettings = useCallback((patch: Partial<ConsoleSettings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...patch };
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        /* storage unavailable — keep in-memory only */
-      }
-      return next;
-    });
-  }, []);
+  const updateSettings = useCallback(
+    (patch: Partial<ConsoleSettings>) => {
+      if (!enabled) return;
+      setSettings((prev) => {
+        const next = { ...prev, ...patch };
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          /* storage unavailable — keep in-memory only */
+        }
+        return next;
+      });
+    },
+    [enabled],
+  );
 
-  return { settings, updateSettings };
+  return { settings: enabled ? settings : DEFAULT_CONSOLE_SETTINGS, updateSettings };
 }
