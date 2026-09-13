@@ -24,9 +24,9 @@ src/routes/api/
 
 Routes under `api/public/*` bypass site authentication, so each handler must verify the caller itself (cron secret, apikey, webhook signature, etc.).
 
-## How this differs from `src/api/`
+## How this differs from `src/functions/`
 
 - **`src/routes/api/`** (this folder) = HTTP endpoints. Used by external callers that speak plain HTTP.
-- **`src/api/`** = typed `createServerFn` wrappers used by the React client. These are called like normal functions from components and are the thin front door to `src/server/services/`.
+- **`src/functions/`** = typed `createServerFn` wrappers used by the React client. These are called like normal functions from components and are the thin front door to `src/server/services/`.
 
-App code should almost always import from `src/api/`, not from here. Use this folder only when you need a URL an external service can POST or GET.
+App code should almost always import from `src/functions/`, not from here. Use this folder only when you need a URL an external service can POST or GET.

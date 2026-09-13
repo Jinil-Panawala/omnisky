@@ -35,12 +35,12 @@ src/routes/api/public/ingest/* ──► src/server/services/ingest/*
      Postgres (Lovable Cloud)
         │
         ▼  snapshot / insights / digest reads
-src/api/*.functions.ts  ──►  browser console (src/routes/index.tsx)
+src/functions/*.functions.ts  ──►  browser console (src/routes/index.tsx)
 ```
 
 A detailed map of the code — what each folder is for and the layering
 rules — lives in **[src/README.md](src/README.md)**. Several folders have
-their own short README too (`src/server/`, `src/domain/`, `src/api/`,
+their own short README too (`src/server/`, `src/domain/`, `src/functions/`,
 `src/hooks/`, `src/components/`, `src/routes/`).
 
 ## Tech stack
