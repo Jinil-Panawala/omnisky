@@ -181,7 +181,7 @@ function Index() {
           <PanelToggles panels={panels} onToggle={togglePanel} />
         </div>
 
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0 relative">
           <ControlPanel layers={layers} onToggleLayer={toggleLayer} onRefresh={handleRefresh} />
 
           {panels.filters && (
