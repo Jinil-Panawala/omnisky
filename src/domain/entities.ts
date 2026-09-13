@@ -97,7 +97,14 @@ export interface ActiveAlert {
 
 export interface AiInsight {
   id: string;
-  category: "loitering" | "dark" | "activity" | "formation" | "launch" | "hotspot";
+  category:
+    | "loitering"
+    | "dark"
+    | "activity"
+    | "formation"
+    | "launch"
+    | "hotspot"
+    | "altitude";
   title: string;
   description: string;
   timestamp: Date;
