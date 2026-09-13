@@ -22,9 +22,10 @@ export interface DetectionResult {
 
 export async function detectCandidates(baseline: number | null): Promise<DetectionResult> {
   const now = Date.now();
-  const [aircraft, vesselLastSeen, activeVessels, launches, history, aircraftCount] =
+  const [aircraft, highest, vesselLastSeen, activeVessels, launches, history, aircraftCount] =
     await Promise.all([
       repo.findRecentAircraft(),
+      repo.findHighestAircraft(),
       repo.findVesselLastSeen(),
       repo.findActiveVesselIds(),
       repo.findLaunchWindow(),
@@ -37,7 +38,7 @@ export async function detectCandidates(baseline: number | null): Promise<Detecti
     ...detectDarkVessels(vesselLastSeen, activeVessels, now),
     ...detectFormations(aircraft, now),
     ...detectLaunchWindows(launches, now),
-    ...detectHighAltitude(aircraft, now),
+    ...detectHighAltitude(highest, now),
     ...detectHotspots(aircraft, now),
     ...detectActivitySpike(aircraftCount, baseline, now),
   ];
