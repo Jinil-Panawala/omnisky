@@ -17,7 +17,7 @@ export interface DigestRecord {
   digest_date: string;
   headline: string;
   summary: string;
-  highlights: unknown;
+  highlights: Record<string, unknown>[];
 }
 
 export interface Subscriber {
@@ -60,7 +60,7 @@ export async function saveDigest(record: {
   digest_date: string;
   headline: string;
   summary: string;
-  highlights: unknown;
+  highlights: Record<string, unknown>[];
   ai_generated: boolean;
 }): Promise<void> {
   const client = await getAdminClient();

@@ -21,3 +21,4 @@
 - [ ] Unit tests (detection rules, adapters, spatial/motion helpers)
 - [ ] Click an AI insight / alert to fly the globe to that location
 - [ ] Make Active Alerts populate reliably (explain the panel, widen detection)
+- Clicking an object on the globe must open its details panel (currently hidden below 2xl screens)
