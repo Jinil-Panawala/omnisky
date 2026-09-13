@@ -7,6 +7,7 @@ import { useLiveEntities } from "@/hooks/useLiveEntities";
 import { useInsightFeed } from "@/hooks/useInsightFeed";
 import { useConsoleFlags } from "@/hooks/useConsoleFlags";
 import { usePanelVisibility } from "@/hooks/usePanelVisibility";
+import { useConsoleSettings } from "@/hooks/useConsoleSettings";
 import { useConsoleDataset } from "@/hooks/useConsoleDataset";
 import { useSelectedTrack } from "@/hooks/useSelectedTrack";
 import { lodForHeight } from "@/lib/geo/spatial";
