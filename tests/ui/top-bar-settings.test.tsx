@@ -55,9 +55,7 @@ describe("TopBar settings gear", () => {
 
   it("always shows the account link regardless of settings visibility", () => {
     renderTopBar({ showSettings: false });
-    expect(
-      screen.getByRole("link", { name: /your account/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/your account/i)).toBeInTheDocument();
   });
 });
 
