@@ -14,6 +14,7 @@ import type {
   VesselSnapshotRow,
 } from "@/domain/live";
 import { getPublicClient } from "./client.server";
+import { rows } from "./query.server";
 
 const AIRCRAFT_COLUMNS =
   "icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at";
