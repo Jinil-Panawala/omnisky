@@ -89,6 +89,93 @@ export type Database = {
         }
         Relationships: []
       }
+      insight_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          last_aircraft_count: number | null
+          last_run_at: string | null
+          lease_expires_at: string | null
+          pause_reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          last_aircraft_count?: number | null
+          last_run_at?: string | null
+          lease_expires_at?: string | null
+          pause_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_aircraft_count?: number | null
+          last_run_at?: string | null
+          lease_expires_at?: string | null
+          pause_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      insights: {
+        Row: {
+          ai_generated: boolean
+          category: string
+          created_at: string
+          dedup_key: string
+          description: string
+          detected_at: string
+          entity_id: string | null
+          entity_type: string
+          expires_at: string
+          id: string
+          kind: string
+          severity: string
+          signal: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          category: string
+          created_at?: string
+          dedup_key: string
+          description: string
+          detected_at?: string
+          entity_id?: string | null
+          entity_type: string
+          expires_at?: string
+          id?: string
+          kind: string
+          severity: string
+          signal?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_generated?: boolean
+          category?: string
+          created_at?: string
+          dedup_key?: string
+          description?: string
+          detected_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          severity?: string
+          signal?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       launches: {
         Row: {
           id: string
