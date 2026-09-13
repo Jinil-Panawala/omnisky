@@ -18,6 +18,8 @@ alert feed and optional daily digest.
   request per run; clicking an alert flies the globe to that spot.
 - **Accounts** — email + Google sign-in. Accounts unlock a daily digest:
   a short AI-written brief of the day's highlights, readable in the app.
+- **Console settings** — signed-in users can choose default layers, panels,
+  and refresh rate; preferences are saved to their profile.
 - **Demo mode** — a toggle on the console swaps live data for a bundled
   mock dataset, handy for development and screenshots.
 
