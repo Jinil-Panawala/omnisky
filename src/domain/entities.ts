@@ -90,7 +90,7 @@ export interface ActiveAlert {
 
 export interface AiInsight {
   id: string;
-  category: "loitering" | "dark" | "activity" | "formation" | "launch";
+  category: "loitering" | "dark" | "activity" | "formation" | "launch" | "hotspot";
   title: string;
   description: string;
   timestamp: Date;
