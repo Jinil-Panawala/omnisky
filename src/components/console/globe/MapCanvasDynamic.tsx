@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Entity, LayerVisibility } from "@/domain/console";
-import type { GlobeViewState } from "./CesiumGlobe";
+import type { CameraFocus, GlobeViewState } from "./CesiumGlobe";
 
-export type { GlobeViewState };
+export type { CameraFocus, GlobeViewState };
 
 export interface MapCanvasDynamicProps {
   entities: Entity[];
@@ -13,6 +13,7 @@ export interface MapCanvasDynamicProps {
   track?: Array<{ lat: number; lon: number }> | undefined;
   showStats?: boolean | undefined;
   dataLoading?: boolean | undefined;
+  focus?: CameraFocus | null | undefined;
 }
 
 export function MapCanvasDynamic(props: MapCanvasDynamicProps) {

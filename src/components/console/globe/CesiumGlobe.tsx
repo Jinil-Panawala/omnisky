@@ -44,6 +44,16 @@ interface CesiumGlobeProps {
   track?: Array<{ lat: number; lon: number }> | undefined;
   showStats?: boolean | undefined;
   dataLoading?: boolean | undefined;
+  /** Ad-hoc camera target (e.g. clicking an alert); `nonce` re-triggers it. */
+  focus?: CameraFocus | null | undefined;
+}
+
+/** A place to fly the camera to, independent of the current selection. */
+export interface CameraFocus {
+  lat: number;
+  lon: number;
+  heightM?: number;
+  nonce: number;
 }
 
 const entityColors: Record<EntityType, string> = {
@@ -75,6 +85,7 @@ export function CesiumGlobe({
   track,
   showStats,
   dataLoading,
+  focus,
 }: CesiumGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
@@ -475,6 +486,18 @@ export function CesiumGlobe({
       }),
     });
   }, [track, ready]);
+
+  // Fly to an explicit target (alert / insight click).
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !ready || !focus) return;
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(focus.lon, focus.lat, focus.heightM ?? 900_000),
+      orientation: { heading: 0, pitch: CesiumMath.toRadians(-90), roll: 0 },
+      duration: 1.4,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus?.nonce, ready]);
 
   // Fly to selection
   useEffect(() => {
