@@ -41,6 +41,22 @@ export async function findRecentAircraft(limit = 5000): Promise<AircraftRow[]> {
   return (data ?? []) as unknown as AircraftRow[];
 }
 
+/**
+ * Highest-flying aircraft, queried by altitude rather than recency: the
+ * recent-rows slice can miss them entirely when the table is larger than the
+ * detection window.
+ */
+export async function findHighestAircraft(limit = 50): Promise<AircraftRow[]> {
+  const client = await getAdminClient();
+  const { data } = await client
+    .from("aircraft_positions")
+    .select("icao24, callsign, lat, lon, altitude_m, heading_deg, on_ground, updated_at")
+    .eq("on_ground", false)
+    .order("altitude_m", { ascending: false, nullsFirst: false })
+    .limit(limit);
+  return (data ?? []) as unknown as AircraftRow[];
+}
+
 export async function countAircraft(): Promise<number> {
   const client = await getAdminClient();
   const { count } = await client
