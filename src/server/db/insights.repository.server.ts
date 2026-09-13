@@ -10,7 +10,6 @@ import type {
   InsightRecord,
   LaunchRow,
   VesselLastSeen,
-  VesselRow,
 } from "@/domain/insights";
 import { getAdminClient, getPublicClient } from "./client.server";
 
@@ -48,16 +47,6 @@ export async function countAircraft(): Promise<number> {
     .from("aircraft_positions")
     .select("icao24", { count: "exact", head: true });
   return count ?? 0;
-}
-
-export async function findRecentVessels(limit = 5000): Promise<VesselRow[]> {
-  const client = await getAdminClient();
-  const { data } = await client
-    .from("vessel_positions")
-    .select("mmsi, ship_name, lat, lon, speed_kn, updated_at")
-    .order("updated_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []) as unknown as VesselRow[];
 }
 
 /** MMSIs currently reporting a live position (rows expire on a short TTL). */
