@@ -51,3 +51,6 @@ export const MAX_FACET_OPTIONS = 20;
 
 /** Synthetic stress-test dataset defaults (`?stress=1`). */
 export const STRESS_DEFAULTS = { aircraft: 20_000, ships: 20_000, satellites: 5_000 } as const;
+
+/** How often the browser re-reads stored AI alerts/insights. */
+export const INSIGHT_FEED_POLL_MS = 120_000;
