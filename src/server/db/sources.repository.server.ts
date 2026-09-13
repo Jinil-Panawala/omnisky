@@ -1,5 +1,6 @@
 /** Feed-health bookkeeping in the `data_sources` table. */
 import { getAdminClient } from "./client.server";
+import { log } from "@/server/observability/log.server";
 
 export async function recordSourceHealth(
   sourceKey: string,
@@ -22,7 +23,7 @@ export async function recordSourceHealth(
         };
     await supabase.from("data_sources").update(patch).eq("source_key", sourceKey);
   } catch (e) {
-    console.error("recordSourceHealth failed", e);
+    log.error("db.sources", "recordSourceHealth failed", e);
   }
 }
 

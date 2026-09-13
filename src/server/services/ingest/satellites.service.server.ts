@@ -2,6 +2,7 @@
 import type { IngestResult } from "@/domain/live";
 import { upsertSatelliteTles } from "@/server/db/positions.repository.server";
 import { runIngest } from "./run.server";
+import { log } from "@/server/observability/log.server";
 
 export const SATELLITE_SOURCE = "celestrak";
 
@@ -64,7 +65,7 @@ export function ingestSatellites(): Promise<IngestResult> {
           all.push({ ...rec, updated_at: new Date().toISOString() });
         }
       } catch (e) {
-        console.error(`celestrak group ${group} failed`, e);
+        log.error("ingest.satellites", `celestrak group ${group} failed`, e);
       }
     }
     return upsertSatelliteTles(all);

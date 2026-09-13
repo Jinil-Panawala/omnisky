@@ -1,5 +1,6 @@
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 import type { IngestResult } from "@/domain/live";
+import { log } from "@/server/observability/log.server";
 
 /** Cron secret bearer OR the publishable apikey header. */
 export async function authorizedIngest(request: Request): Promise<boolean> {
@@ -22,7 +23,7 @@ export async function runIngestRoute(
     return Response.json({ ok: true, ...result });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    console.error("ingest failed", message);
+    log.error("http.ingest", "ingest route failed", message);
     return Response.json({ ok: false, error: message }, { status: 500 });
   }
 }

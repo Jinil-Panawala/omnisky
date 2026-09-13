@@ -6,8 +6,19 @@
  * - `getAdminClient()`   service role, RLS bypassed (ingestion writes only)
  */
 
+type PublicClient = Awaited<ReturnType<typeof createPublicClient>>;
+
+// One client per worker instance: creating it per query allocated a new
+// connection wrapper on every read the console made.
+let publicClient: PublicClient | null = null;
+
 /** Publishable-key client used for public reads from server functions. */
-export async function getPublicClient() {
+export async function getPublicClient(): Promise<PublicClient> {
+  publicClient ??= await createPublicClient();
+  return publicClient;
+}
+
+async function createPublicClient() {
   const { createClient } = await import("@supabase/supabase-js");
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
   return createClient(process.env["SUPABASE_URL"]!, key, {

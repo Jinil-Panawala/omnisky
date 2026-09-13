@@ -9,6 +9,7 @@
 import * as repo from "@/server/db/insights.repository.server";
 import { detectCandidates } from "./detect.service.server";
 import { AiBlockedError, generateWording } from "./generate.service.server";
+import { log } from "@/server/observability/log.server";
 
 export interface InsightRunResult {
   skipped?: string;
@@ -60,7 +61,7 @@ export async function runInsightGeneration(): Promise<InsightRunResult> {
       if (e instanceof AiBlockedError) {
         pauseReason = e.message;
       } else {
-        console.error("AI wording failed", e);
+        log.error("insights.run", "AI wording failed", e);
       }
     }
 

@@ -8,6 +8,7 @@ import {
   upsertVesselPositions,
 } from "@/server/db/positions.repository.server";
 import { runIngest } from "./run.server";
+import { log } from "@/server/observability/log.server";
 
 const COLLECT_MS = 8000;
 const MAX_VESSELS = 2000;
@@ -52,7 +53,7 @@ function collectVessels(apiKey: string): Promise<VesselRow[]> {
     try {
       ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
     } catch (e) {
-      console.error("AISStream socket could not be opened", e);
+      log.error("ingest.vessels", "AISStream socket could not be opened", e);
       resolve([]);
       return;
     }
@@ -88,7 +89,7 @@ function collectVessels(apiKey: string): Promise<VesselRow[]> {
       );
     };
     ws.onerror = (event) => {
-      console.error("AISStream socket error", event);
+      log.error("ingest.vessels", "AISStream socket error", event);
       done();
     };
     ws.onclose = () => done();

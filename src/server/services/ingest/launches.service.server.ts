@@ -6,6 +6,7 @@ import {
   upsertLaunches,
 } from "@/server/db/positions.repository.server";
 import { runIngest } from "./run.server";
+import { log } from "@/server/observability/log.server";
 
 export const LAUNCH_SOURCE = "launchlibrary2";
 
@@ -68,7 +69,7 @@ export function ingestLaunches(): Promise<IngestResult> {
         signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) {
-        console.error(`LL2 fetch failed [${res.status}]`);
+        log.error("ingest.launches", `LL2 fetch failed [${res.status}]`);
         continue;
       }
       const data = (await res.json()) as { results?: Ll2Launch[] };

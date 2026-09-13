@@ -14,6 +14,7 @@ import type {
   VesselSnapshotRow,
 } from "@/domain/live";
 import { getPublicClient } from "./client.server";
+import { rows } from "./query.server";
 
 const AIRCRAFT_COLUMNS =
   "icao24, callsign, lat, lon, altitude_m, velocity_ms, heading_deg, vertical_rate_ms, on_ground, updated_at";
@@ -48,68 +49,79 @@ function withinBounds<T>(query: T, bounds: SnapshotBounds | null): T {
 
 type Client = Awaited<ReturnType<typeof getPublicClient>>;
 
-export async function findAircraftInBounds(
+export function findAircraftInBounds(
   client: Client,
   bounds: SnapshotBounds | null,
-  rows: number,
+  limit: number,
 ): Promise<AircraftSnapshotRow[]> {
-  const { data } = await withinBounds(
-    client.from("aircraft_positions").select(AIRCRAFT_COLUMNS),
-    bounds,
-  )
-    .order("updated_at", { ascending: false })
-    .range(0, rows - 1);
-  return (data ?? []) as AircraftSnapshotRow[];
+  return rows<AircraftSnapshotRow>(
+    "aircraft",
+    withinBounds(client.from("aircraft_positions").select(AIRCRAFT_COLUMNS), bounds)
+      .order("updated_at", { ascending: false })
+      .range(0, limit - 1),
+  );
 }
 
-export async function findVesselsInBounds(
+export function findVesselsInBounds(
   client: Client,
   bounds: SnapshotBounds | null,
-  rows: number,
+  limit: number,
 ): Promise<VesselSnapshotRow[]> {
-  const { data } = await withinBounds(
-    client.from("vessel_positions").select(VESSEL_COLUMNS),
-    bounds,
-  )
-    .order("updated_at", { ascending: false })
-    .range(0, rows - 1);
-  return (data ?? []) as VesselSnapshotRow[];
+  return rows<VesselSnapshotRow>(
+    "vessels",
+    withinBounds(client.from("vessel_positions").select(VESSEL_COLUMNS), bounds)
+      .order("updated_at", { ascending: false })
+      .range(0, limit - 1),
+  );
 }
 
-export async function findSatellites(client: Client): Promise<SatelliteSnapshotRow[]> {
-  const { data } = await client
-    .from("satellite_tles")
-    .select(SATELLITE_COLUMNS)
-    .range(0, SNAPSHOT_LIMITS.satellites - 1);
-  return (data ?? []) as SatelliteSnapshotRow[];
+export function findSatellites(client: Client): Promise<SatelliteSnapshotRow[]> {
+  return rows<SatelliteSnapshotRow>(
+    "satellites",
+    client
+      .from("satellite_tles")
+      .select(SATELLITE_COLUMNS)
+      .range(0, SNAPSHOT_LIMITS.satellites - 1),
+  );
 }
 
-export async function findLaunches(client: Client): Promise<LaunchSnapshotRow[]> {
-  const { data } = await client
-    .from("launches")
-    .select(LAUNCH_COLUMNS)
-    .order("window_start", { ascending: true })
-    .limit(SNAPSHOT_LIMITS.launches);
-  return (data ?? []) as LaunchSnapshotRow[];
+export function findLaunches(client: Client): Promise<LaunchSnapshotRow[]> {
+  return rows<LaunchSnapshotRow>(
+    "launches",
+    client
+      .from("launches")
+      .select(LAUNCH_COLUMNS)
+      .order("window_start", { ascending: true })
+      .limit(SNAPSHOT_LIMITS.launches),
+  );
 }
 
-export async function findSourceHealth(client: Client): Promise<SourceHealthRow[]> {
-  const { data } = await client.from("data_sources").select(SOURCE_COLUMNS);
-  return (data ?? []) as SourceHealthRow[];
+export function findSourceHealth(client: Client): Promise<SourceHealthRow[]> {
+  return rows<SourceHealthRow>(
+    "sources",
+    client.from("data_sources").select(SOURCE_COLUMNS),
+  );
 }
 
 export async function findTrack(
   client: Client,
   { craftType, craftId }: TrackInput,
 ): Promise<TrackPoint[]> {
-  const { data } = await client
-    .from("position_history")
-    .select("lat, lon, recorded_at")
-    .eq("craft_type", craftType)
-    .eq("craft_id", craftId)
-    .order("recorded_at", { ascending: true })
-    .limit(SNAPSHOT_LIMITS.trackPoints);
-  return ((data ?? []) as Array<{ lat: number | null; lon: number | null; recorded_at: string }>)
+  const points = await rows<{
+    lat: number | null;
+    lon: number | null;
+    recorded_at: string;
+  }>(
+    "track",
+    client
+      .from("position_history")
+      .select("lat, lon, recorded_at")
+      .eq("craft_type", craftType)
+      .eq("craft_id", craftId)
+      .order("recorded_at", { ascending: true })
+      .limit(SNAPSHOT_LIMITS.trackPoints),
+  );
+  return points
     .filter((r): r is TrackPoint => r.lat != null && r.lon != null)
     .map((r) => ({ lat: r.lat, lon: r.lon, recorded_at: r.recorded_at }));
 }

@@ -8,6 +8,7 @@
  */
 import { INSIGHT_RULES } from "@/domain/insights";
 import type { InsightCandidate, InsightSeverity } from "@/domain/insights";
+import { log } from "@/server/observability/log.server";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/responses";
 const MODEL = "openai/gpt-6-astra";
@@ -167,7 +168,7 @@ export async function generateWording(
     if (response.status === 402 || response.status === 403) {
       throw new AiBlockedError(message, response.status);
     }
-    console.error(message, await response.text().catch(() => ""));
+    log.error("insights.generate", message, await response.text().catch(() => ""));
     return null;
   }
 
@@ -178,7 +179,7 @@ export async function generateWording(
     if (!Array.isArray(parsed.items)) return null;
     return applyWording(batch, parsed.items);
   } catch {
-    console.error("AI wording returned unparsable output");
+    log.error("insights.generate", "AI wording returned unparsable output");
     return null;
   }
 }
