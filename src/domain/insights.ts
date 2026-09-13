@@ -42,8 +42,8 @@ export interface InsightRecord {
 export const INSIGHT_RULES = {
   /** Aircraft loitering: circling inside a small radius for a long while. */
   loitering: { minPoints: 8, maxRadiusKm: 28, minMinutes: 40 },
-  /** Vessels that stopped broadcasting AIS but were recently seen. */
-  dark: { minQuietMinutes: 25, maxQuietMinutes: 180, minSpeedKn: 2 },
+  /** Vessels last seen underway that have since gone quiet on AIS. */
+  dark: { minQuietMinutes: 35, maxQuietMinutes: 180, maxReports: 6 },
   /**
    * Real formations, not busy airspace: aircraft packed into a few km at a
    * shared altitude and heading.
@@ -52,9 +52,9 @@ export const INSIGHT_RULES = {
     cellDeg: 0.4,
     minCount: 4,
     minAltitudeM: 3000,
-    maxSpreadKm: 12,
+    maxSpreadKm: 15,
     maxAltitudeSpreadM: 1200,
-    maxHeadingSpreadDeg: 25,
+    maxHeadingSpreadDeg: 30,
   },
   /** Global aircraft-count change versus the previous run. */
   activity: { minChangePct: 25, minBaseline: 300 },
@@ -103,6 +103,14 @@ export interface VesselRow {
   lon: number | null;
   speed_kn: number | null;
   updated_at: string;
+}
+
+/** Last known history fix for a vessel, used to spot AIS drop-outs. */
+export interface VesselLastSeen {
+  mmsi: string;
+  lat: number;
+  lon: number;
+  lastSeenMs: number;
 }
 
 export interface LaunchRow {
@@ -195,32 +203,39 @@ export function detectLoitering(points: HistoryPoint[], now: number): InsightCan
   return out;
 }
 
-/** Vessels that were moving and then stopped reporting AIS. */
-export function detectDarkVessels(vessels: VesselRow[], now: number): InsightCandidate[] {
-  const { minQuietMinutes, maxQuietMinutes, minSpeedKn } = INSIGHT_RULES.dark;
+/**
+ * Vessels whose AIS track stops: they appear in recent history but no longer
+ * report a live position. Live rows expire on a short TTL, so absence from the
+ * live table is the signal, not a stale timestamp.
+ */
+export function detectDarkVessels(
+  lastSeen: VesselLastSeen[],
+  activeMmsi: Set<string>,
+  now: number,
+): InsightCandidate[] {
+  const { minQuietMinutes, maxQuietMinutes, maxReports } = INSIGHT_RULES.dark;
   const out: InsightCandidate[] = [];
-  for (const v of vessels) {
-    if (v.lat == null || v.lon == null) continue;
-    if ((v.speed_kn ?? 0) < minSpeedKn) continue;
-    const quietMinutes = (now - new Date(v.updated_at).getTime()) / 60_000;
+  for (const v of lastSeen) {
+    if (activeMmsi.has(v.mmsi)) continue;
+    const quietMinutes = (now - v.lastSeenMs) / 60_000;
     if (quietMinutes < minQuietMinutes || quietMinutes > maxQuietMinutes) continue;
     out.push({
       kind: "alert",
       category: "dark",
-      severity: quietMinutes > 60 ? "critical" : "warning",
+      severity: quietMinutes > 90 ? "critical" : "warning",
       entityType: "ship",
       entityId: v.mmsi,
       title: "AIS Signal Lost",
-      description: `${v.ship_name?.trim() || `MMSI ${v.mmsi}`} stopped broadcasting ${Math.round(quietMinutes)} minutes ago while underway at ${roundTo(v.speed_kn ?? 0)} kn near ${roundTo(v.lat, 2)}, ${roundTo(v.lon, 2)}.`,
+      description: `Vessel MMSI ${v.mmsi} stopped broadcasting AIS ${Math.round(quietMinutes)} minutes ago; last fix near ${roundTo(v.lat, 2)}, ${roundTo(v.lon, 2)}.`,
       signal: {
         mmsi: v.mmsi,
         quietMinutes: Math.round(quietMinutes),
-        speedKn: v.speed_kn,
         lat: roundTo(v.lat, 2),
         lon: roundTo(v.lon, 2),
       },
       dedupKey: dedupKey("dark", v.mmsi, now),
     });
+    if (out.length >= maxReports) break;
   }
   return out;
 }
