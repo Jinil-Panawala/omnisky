@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_digests: {
+        Row: {
+          ai_generated: boolean
+          created_at: string
+          digest_date: string
+          headline: string
+          highlights: Json
+          id: string
+          summary: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          created_at?: string
+          digest_date: string
+          headline: string
+          highlights?: Json
+          id?: string
+          summary: string
+        }
+        Update: {
+          ai_generated?: boolean
+          created_at?: string
+          digest_date?: string
+          headline?: string
+          highlights?: Json
+          id?: string
+          summary?: string
+        }
+        Relationships: []
+      }
       data_sources: {
         Row: {
           created_at: string
