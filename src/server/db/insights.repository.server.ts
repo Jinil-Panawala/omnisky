@@ -12,6 +12,7 @@ import type {
   VesselLastSeen,
 } from "@/domain/insights";
 import { getAdminClient, getPublicClient } from "./client.server";
+import { row, rows } from "./query.server";
 
 const JOB_ID = "default";
 const LEASE_MINUTES = 5;
@@ -20,25 +21,29 @@ const LEASE_MINUTES = 5;
 
 export async function findInsights(limit = 40): Promise<InsightRecord[]> {
   const client = await getPublicClient();
-  const { data } = await client
-    .from("insights")
-    .select("id, kind, category, severity, entity_type, entity_id, title, description, signal, ai_generated, detected_at")
-    .gt("expires_at", new Date().toISOString())
-    .order("detected_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []) as unknown as InsightRecord[];
+  return rows<InsightRecord>(
+    "insights.list",
+    client
+      .from("insights")
+      .select("id, kind, category, severity, entity_type, entity_id, title, description, signal, ai_generated, detected_at")
+      .gt("expires_at", new Date().toISOString())
+      .order("detected_at", { ascending: false })
+      .limit(limit),
+  );
 }
 
 /* ----------------------------- reads for the detectors ---------------------------- */
 
 export async function findRecentAircraft(limit = 5000): Promise<AircraftRow[]> {
   const client = await getAdminClient();
-  const { data } = await client
-    .from("aircraft_positions")
-    .select("icao24, callsign, lat, lon, altitude_m, heading_deg, on_ground, updated_at")
-    .order("updated_at", { ascending: false })
-    .limit(limit);
-  return (data ?? []) as unknown as AircraftRow[];
+  return rows<AircraftRow>(
+    "aircraft.recent",
+    client
+      .from("aircraft_positions")
+      .select("icao24, callsign, lat, lon, altitude_m, heading_deg, on_ground, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(limit),
+  );
 }
 
 /**
@@ -48,13 +53,15 @@ export async function findRecentAircraft(limit = 5000): Promise<AircraftRow[]> {
  */
 export async function findHighestAircraft(limit = 50): Promise<AircraftRow[]> {
   const client = await getAdminClient();
-  const { data } = await client
-    .from("aircraft_positions")
-    .select("icao24, callsign, lat, lon, altitude_m, heading_deg, on_ground, updated_at")
-    .eq("on_ground", false)
-    .order("altitude_m", { ascending: false, nullsFirst: false })
-    .limit(limit);
-  return (data ?? []) as unknown as AircraftRow[];
+  return rows<AircraftRow>(
+    "aircraft.highest",
+    client
+      .from("aircraft_positions")
+      .select("icao24, callsign, lat, lon, altitude_m, heading_deg, on_ground, updated_at")
+      .eq("on_ground", false)
+      .order("altitude_m", { ascending: false, nullsFirst: false })
+      .limit(limit),
+  );
 }
 
 export async function countAircraft(): Promise<number> {
@@ -68,23 +75,29 @@ export async function countAircraft(): Promise<number> {
 /** MMSIs currently reporting a live position (rows expire on a short TTL). */
 export async function findActiveVesselIds(limit = 30000): Promise<Set<string>> {
   const client = await getAdminClient();
-  const { data } = await client.from("vessel_positions").select("mmsi").limit(limit);
-  return new Set(((data ?? []) as Array<{ mmsi: string }>).map((r) => r.mmsi));
+  const ids = await rows<{ mmsi: string }>(
+    "vessels.active",
+    client.from("vessel_positions").select("mmsi").limit(limit),
+  );
+  return new Set(ids.map((r) => r.mmsi));
 }
 
 /** Latest recorded fix per vessel within the lookback window. */
 export async function findVesselLastSeen(minutes = 180, limit = 20000): Promise<VesselLastSeen[]> {
   const client = await getAdminClient();
-  const { data } = await client
-    .from("position_history")
-    .select("craft_id, lat, lon, recorded_at")
-    .eq("craft_type", "vessel")
-    .gte("recorded_at", new Date(Date.now() - minutes * 60_000).toISOString())
-    .order("recorded_at", { ascending: true })
-    .limit(limit);
+  const history = await rows<Partial<HistoryPoint>>(
+    "vessels.lastSeen",
+    client
+      .from("position_history")
+      .select("craft_id, lat, lon, recorded_at")
+      .eq("craft_type", "vessel")
+      .gte("recorded_at", new Date(Date.now() - minutes * 60_000).toISOString())
+      .order("recorded_at", { ascending: true })
+      .limit(limit),
+  );
 
   const latest = new Map<string, VesselLastSeen>();
-  for (const row of (data ?? []) as Array<Partial<HistoryPoint>>) {
+  for (const row of history) {
     if (!row.craft_id || row.lat == null || row.lon == null || !row.recorded_at) continue;
     latest.set(row.craft_id, {
       mmsi: row.craft_id,
@@ -99,25 +112,30 @@ export async function findVesselLastSeen(minutes = 180, limit = 20000): Promise<
 export async function findLaunchWindow(): Promise<LaunchRow[]> {
   const client = await getAdminClient();
   const now = Date.now();
-  const { data } = await client
-    .from("launches")
-    .select("id, name, provider, pad_name, status, window_start")
-    .gte("window_start", new Date(now - INSIGHT_RULES.launch.behindHours * 3_600_000).toISOString())
-    .lte("window_start", new Date(now + INSIGHT_RULES.launch.aheadHours * 3_600_000).toISOString())
-    .limit(20);
-  return (data ?? []) as unknown as LaunchRow[];
+  return rows<LaunchRow>(
+    "launches.window",
+    client
+      .from("launches")
+      .select("id, name, provider, pad_name, status, window_start")
+      .gte("window_start", new Date(now - INSIGHT_RULES.launch.behindHours * 3_600_000).toISOString())
+      .lte("window_start", new Date(now + INSIGHT_RULES.launch.aheadHours * 3_600_000).toISOString())
+      .limit(20),
+  );
 }
 
 export async function findAircraftHistory(minutes = 90, limit = 8000): Promise<HistoryPoint[]> {
   const client = await getAdminClient();
-  const { data } = await client
-    .from("position_history")
-    .select("craft_id, lat, lon, recorded_at")
-    .eq("craft_type", "aircraft")
-    .gte("recorded_at", new Date(Date.now() - minutes * 60_000).toISOString())
-    .order("recorded_at", { ascending: true })
-    .limit(limit);
-  return ((data ?? []) as Array<Partial<HistoryPoint>>).filter(
+  const history = await rows<Partial<HistoryPoint>>(
+    "aircraft.history",
+    client
+      .from("position_history")
+      .select("craft_id, lat, lon, recorded_at")
+      .eq("craft_type", "aircraft")
+      .gte("recorded_at", new Date(Date.now() - minutes * 60_000).toISOString())
+      .order("recorded_at", { ascending: true })
+      .limit(limit),
+  );
+  return history.filter(
     (p): p is HistoryPoint => p.lat != null && p.lon != null && !!p.craft_id && !!p.recorded_at,
   );
 }
@@ -158,11 +176,14 @@ export async function filterNewCandidates(
 ): Promise<InsightCandidate[]> {
   if (candidates.length === 0) return [];
   const client = await getAdminClient();
-  const { data } = await client
-    .from("insights")
-    .select("dedup_key")
-    .in("dedup_key", candidates.map((c) => c.dedupKey));
-  const seen = new Set(((data ?? []) as Array<{ dedup_key: string }>).map((r) => r.dedup_key));
+  const existing = await rows<{ dedup_key: string }>(
+    "insights.dedup",
+    client
+      .from("insights")
+      .select("dedup_key")
+      .in("dedup_key", candidates.map((c) => c.dedupKey)),
+  );
+  const seen = new Set(existing.map((r) => r.dedup_key));
   return candidates.filter((c) => !seen.has(c.dedupKey));
 }
 
@@ -183,12 +204,14 @@ export interface InsightJobState {
 
 export async function readJobState(): Promise<InsightJobState | null> {
   const client = await getAdminClient();
-  const { data } = await client
-    .from("insight_jobs")
-    .select("status, pause_reason, lease_expires_at, last_run_at, last_aircraft_count")
-    .eq("id", JOB_ID)
-    .maybeSingle();
-  return (data ?? null) as unknown as InsightJobState | null;
+  return row<InsightJobState>(
+    "insightJobs.read",
+    client
+      .from("insight_jobs")
+      .select("status, pause_reason, lease_expires_at, last_run_at, last_aircraft_count")
+      .eq("id", JOB_ID)
+      .maybeSingle(),
+  );
 }
 
 /** Single-flight lease: false when another run holds an unexpired lease. */
