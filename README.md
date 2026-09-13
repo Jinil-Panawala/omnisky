@@ -32,7 +32,7 @@ ADSB.lol / AISStream          (external feeds)
 src/routes/api/public/ingest/* ──► src/server/services/ingest/*
         │                                writes via
         ▼                                src/server/db
-     Postgres (Lovable Cloud)
+     Postgres (cloud backend)
         │
         ▼  snapshot / insights / digest reads
 src/functions/*.functions.ts  ──►  browser console (src/routes/index.tsx)
@@ -47,8 +47,8 @@ their own short README too (`src/server/`, `src/domain/`, `src/functions/`,
 
 - TanStack Start (React 19, SSR, server functions) + Vite
 - CesiumJS for the globe
-- Lovable Cloud (Supabase: Postgres, Auth, Storage, scheduled jobs)
-- Lovable AI Gateway for alert wording and digest composition
+- Supabase (Postgres, Auth, Storage, scheduled jobs)
+- AI gateway for alert wording and digest composition
 - Tailwind CSS v4 + shadcn-style components
 - Vitest + Testing Library (`npm test`)
 
