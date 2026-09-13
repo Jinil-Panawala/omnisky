@@ -4,6 +4,8 @@ A live global situational-awareness console: real-time aircraft, ships,
 satellites and launches on an interactive 3D globe, with an AI-assisted
 alert feed and optional daily digest.
 
+[Website](https://omnisky-project.lovable.app)
+
 ## What it does
 
 - **Live globe (CesiumJS)** — renders thousands of entities with
