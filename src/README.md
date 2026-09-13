@@ -21,11 +21,15 @@ src/
     services/  Use cases. Compose domain rules + query layer.
                live.service.server.ts          snapshot, track, on-demand refresh
                ingest/                         one service per provider feed
-    http/      Helpers for the public ingest HTTP routes (auth, error shape)
+               insights/                       alert detection + AI wording
+               digest/                         daily digest compose + publish
+    http/      Helpers for the public HTTP routes (auth, error shape)
 
   routes/      Pages and HTTP routes (file-based routing)
                index.tsx                the console
+               auth.tsx / account.tsx   sign-in, profile + digest settings
                api/public/ingest/*      cron-triggered ingestion endpoints
+               api/public/insights|digest/run.ts   scheduled insight/digest jobs
 
   components/  React UI. `console/` holds the globe, layout and panels.
   hooks/       Client data hooks (useLiveEntities drives the live pipeline).
