@@ -1,9 +1,11 @@
-import { Radar, Search, Bell, Settings, User } from "lucide-react";
+import { Radar, Search, User } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/domain/constants";
 import { cn } from "@/lib/utils";
+import { SettingsMenu } from "./SettingsMenu";
+import type { ConsoleSettings } from "@/hooks/useConsoleSettings";
 
 export type DataMode = "demo" | "live";
 
@@ -13,6 +15,8 @@ interface TopBarProps {
   onModeChange?: (mode: DataMode) => void;
   feedStatus?: "connecting" | "live" | "stale" | "error";
   lastUpdated?: Date | null;
+  settings: ConsoleSettings;
+  onSettingsChange: (patch: Partial<ConsoleSettings>) => void;
 }
 
 const STATUS_STYLES: Record<string, { dot: string; label: string }> = {
@@ -28,6 +32,8 @@ export function TopBar({
   onModeChange,
   feedStatus = "connecting",
   lastUpdated,
+  settings,
+  onSettingsChange,
 }: TopBarProps) {
   const status = STATUS_STYLES[feedStatus] ?? STATUS_STYLES["connecting"]!;
   return (
@@ -93,12 +99,7 @@ export function TopBar({
           </div>
         )}
 
-        <Button variant="ghost" size="icon" className="text-console-muted hover:text-console-text hover:bg-console-panel-raised">
-          <Bell className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-console-muted hover:text-console-text hover:bg-console-panel-raised">
-          <Settings className="w-4 h-4" />
-        </Button>
+        <SettingsMenu settings={settings} onChange={onSettingsChange} />
         <Button
           asChild
           variant="ghost"

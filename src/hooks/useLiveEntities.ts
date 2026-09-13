@@ -89,7 +89,11 @@ export interface LiveViewport {
   limit: number;
 }
 
-export function useLiveEntities(enabled: boolean, viewport?: LiveViewport): LiveState {
+export function useLiveEntities(
+  enabled: boolean,
+  viewport?: LiveViewport,
+  refreshIntervalMs: number = SNAPSHOT_INTERVAL_MS,
+): LiveState {
   const fetchSnapshot = useServerFn(getLiveSnapshot);
   const triggerRefresh = useServerFn(refreshLiveFeeds);
   const kickedOff = useRef(false);
@@ -105,8 +109,8 @@ export function useLiveEntities(enabled: boolean, viewport?: LiveViewport): Live
     queryKey: ["live-snapshot", roundedKey, limit],
     queryFn: () => fetchSnapshot({ data: { bounds, limit } }),
     enabled,
-    refetchInterval: enabled ? SNAPSHOT_INTERVAL_MS : false,
-    staleTime: SNAPSHOT_INTERVAL_MS,
+    refetchInterval: enabled ? refreshIntervalMs : false,
+    staleTime: refreshIntervalMs,
     // Keep the previous objects on the globe while the new viewport loads.
     placeholderData: (prev) => prev,
   });
