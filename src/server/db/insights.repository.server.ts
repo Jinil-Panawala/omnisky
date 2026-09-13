@@ -35,7 +35,7 @@ export async function findRecentAircraft(limit = 5000): Promise<AircraftRow[]> {
   const client = await getAdminClient();
   const { data } = await client
     .from("aircraft_positions")
-    .select("icao24, callsign, lat, lon, altitude_m, on_ground, updated_at")
+    .select("icao24, callsign, lat, lon, altitude_m, heading_deg, on_ground, updated_at")
     .order("updated_at", { ascending: false })
     .limit(limit);
   return (data ?? []) as unknown as AircraftRow[];

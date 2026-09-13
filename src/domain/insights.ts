@@ -44,8 +44,18 @@ export const INSIGHT_RULES = {
   loitering: { minPoints: 8, maxRadiusKm: 28, minMinutes: 40 },
   /** Vessels that stopped broadcasting AIS but were recently seen. */
   dark: { minQuietMinutes: 25, maxQuietMinutes: 180, minSpeedKn: 2 },
-  /** Tight groups of airborne aircraft in one small cell. */
-  formation: { cellDeg: 0.4, minCount: 5, minAltitudeM: 3000 },
+  /**
+   * Real formations, not busy airspace: aircraft packed into a few km at a
+   * shared altitude and heading.
+   */
+  formation: {
+    cellDeg: 0.4,
+    minCount: 4,
+    minAltitudeM: 3000,
+    maxSpreadKm: 12,
+    maxAltitudeSpreadM: 1200,
+    maxHeadingSpreadDeg: 25,
+  },
   /** Global aircraft-count change versus the previous run. */
   activity: { minChangePct: 25, minBaseline: 300 },
   /** Launch windows opening or just closed. */
@@ -81,6 +91,7 @@ export interface AircraftRow {
   lat: number | null;
   lon: number | null;
   altitude_m: number | null;
+  heading_deg: number | null;
   on_ground: boolean | null;
   updated_at: string;
 }
@@ -214,13 +225,23 @@ export function detectDarkVessels(vessels: VesselRow[], now: number): InsightCan
   return out;
 }
 
-/** Unusually tight groups of airborne aircraft in a single grid cell. */
+/** Aircraft flying as a tight group: close together, same altitude and heading. */
 export function detectFormations(aircraft: AircraftRow[], now: number): InsightCandidate[] {
-  const { cellDeg, minCount, minAltitudeM } = INSIGHT_RULES.formation;
+  const {
+    cellDeg,
+    minCount,
+    minAltitudeM,
+    maxSpreadKm,
+    maxAltitudeSpreadM,
+    maxHeadingSpreadDeg,
+  } = INSIGHT_RULES.formation;
+
+  // Grid cells are only a cheap pre-filter; the real test is the tightness
+  // check below, so ordinary busy airspace does not raise an insight.
   const cells = new Map<string, AircraftRow[]>();
   for (const a of aircraft) {
     if (a.lat == null || a.lon == null || a.on_ground) continue;
-    if ((a.altitude_m ?? 0) < minAltitudeM) continue;
+    if ((a.altitude_m ?? 0) < minAltitudeM || a.heading_deg == null) continue;
     const key = `${Math.floor(a.lat / cellDeg)}|${Math.floor(a.lon / cellDeg)}`;
     const list = cells.get(key);
     if (list) list.push(a);
@@ -228,27 +249,66 @@ export function detectFormations(aircraft: AircraftRow[], now: number): InsightC
   }
 
   const out: InsightCandidate[] = [];
-  for (const [key, group] of cells) {
+  for (const [key, cell] of cells) {
+    if (cell.length < minCount) continue;
+    const group = tightestGroup(cell, maxSpreadKm, maxAltitudeSpreadM, maxHeadingSpreadDeg);
     if (group.length < minCount) continue;
+
     const lat = group.reduce((s, a) => s + (a.lat ?? 0), 0) / group.length;
     const lon = group.reduce((s, a) => s + (a.lon ?? 0), 0) / group.length;
+    const altitudeM = Math.round(
+      group.reduce((s, a) => s + (a.altitude_m ?? 0), 0) / group.length,
+    );
     const callsigns = group
       .map((a) => a.callsign?.trim())
       .filter((c): c is string => Boolean(c))
       .slice(0, 6);
+
     out.push({
       kind: "insight",
       category: "formation",
       severity: group.length >= minCount * 2 ? "warning" : "info",
       entityType: "aircraft",
       entityId: group[0]!.icao24,
-      title: "Tight Aircraft Grouping",
-      description: `${group.length} airborne aircraft are grouped within roughly ${Math.round(cellDeg * 111)} km near ${roundTo(lat, 2)}, ${roundTo(lon, 2)}.`,
-      signal: { count: group.length, lat: roundTo(lat, 2), lon: roundTo(lon, 2), callsigns },
+      title: "Aircraft Flying in Formation",
+      description: `${group.length} aircraft are holding station within ${maxSpreadKm} km at about ${altitudeM} m on a common heading near ${roundTo(lat, 2)}, ${roundTo(lon, 2)}.`,
+      signal: {
+        count: group.length,
+        lat: roundTo(lat, 2),
+        lon: roundTo(lon, 2),
+        altitudeM,
+        headingDeg: Math.round(group[0]!.heading_deg ?? 0),
+        callsigns,
+      },
       dedupKey: dedupKey("formation", key, now),
     });
   }
   return out;
+}
+
+/** Largest subset of a cell that is close, co-altitude and co-heading. */
+function tightestGroup(
+  cell: AircraftRow[],
+  maxSpreadKm: number,
+  maxAltitudeSpreadM: number,
+  maxHeadingSpreadDeg: number,
+): AircraftRow[] {
+  let best: AircraftRow[] = [];
+  for (const seed of cell) {
+    const group = cell.filter(
+      (a) =>
+        distanceKm(seed.lat!, seed.lon!, a.lat!, a.lon!) <= maxSpreadKm &&
+        Math.abs((a.altitude_m ?? 0) - (seed.altitude_m ?? 0)) <= maxAltitudeSpreadM &&
+        headingDelta(a.heading_deg ?? 0, seed.heading_deg ?? 0) <= maxHeadingSpreadDeg,
+    );
+    if (group.length > best.length) best = group;
+  }
+  return best;
+}
+
+function headingDelta(a: number, b: number): number {
+  const d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
 }
 
 /** Launch windows opening shortly or just closed. */
