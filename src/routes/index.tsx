@@ -210,7 +210,13 @@ function Index() {
           </div>
 
           {panels.details && (
-            <div className="hidden 2xl:flex shrink-0">
+            /* On wide screens the details dock beside the globe; on smaller
+               screens it slides over the map so a click always shows details. */
+            <div
+              className={`${
+                selected ? "flex absolute right-0 top-0 bottom-0 z-30 shadow-2xl" : "hidden"
+              } 2xl:static 2xl:flex 2xl:shadow-none shrink-0`}
+            >
               <EntityPanel
                 selected={selected}
                 onClose={() => setSelected(null)}
