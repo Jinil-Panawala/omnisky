@@ -18,6 +18,8 @@ alert feed and optional daily digest.
   request per run; clicking an alert flies the globe to that spot.
 - **Accounts** — email + Google sign-in. Accounts unlock a daily digest:
   a short AI-written brief of the day's highlights, readable in the app.
+- **Console settings** — signed-in users can choose default layers, panels,
+  and refresh rate; preferences are saved to their profile.
 - **Demo mode** — a toggle on the console swaps live data for a bundled
   mock dataset, handy for development and screenshots.
 
@@ -30,7 +32,7 @@ ADSB.lol / AISStream          (external feeds)
 src/routes/api/public/ingest/* ──► src/server/services/ingest/*
         │                                writes via
         ▼                                src/server/db
-     Postgres (Lovable Cloud)
+     Postgres (cloud backend)
         │
         ▼  snapshot / insights / digest reads
 src/functions/*.functions.ts  ──►  browser console (src/routes/index.tsx)
@@ -45,8 +47,8 @@ their own short README too (`src/server/`, `src/domain/`, `src/functions/`,
 
 - TanStack Start (React 19, SSR, server functions) + Vite
 - CesiumJS for the globe
-- Lovable Cloud (Supabase: Postgres, Auth, Storage, scheduled jobs)
-- Lovable AI Gateway for alert wording and digest composition
+- Supabase (Postgres, Auth, Storage, scheduled jobs)
+- AI gateway for alert wording and digest composition
 - Tailwind CSS v4 + shadcn-style components
 - Vitest + Testing Library (`npm test`)
 
