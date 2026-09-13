@@ -21,11 +21,15 @@ src/
     services/  Use cases. Compose domain rules + query layer.
                live.service.server.ts          snapshot, track, on-demand refresh
                ingest/                         one service per provider feed
-    http/      Helpers for the public ingest HTTP routes (auth, error shape)
+               insights/                       alert detection + AI wording
+               digest/                         daily digest compose + publish
+    http/      Helpers for the public HTTP routes (auth, error shape)
 
   routes/      Pages and HTTP routes (file-based routing)
                index.tsx                the console
+               auth.tsx / account.tsx   sign-in, profile + digest settings
                api/public/ingest/*      cron-triggered ingestion endpoints
+               api/public/insights|digest/run.ts   scheduled insight/digest jobs
 
   components/  React UI. `console/` holds the globe, layout and panels.
   hooks/       Client data hooks (useLiveEntities drives the live pipeline).
@@ -42,3 +46,8 @@ src/
 - SQL lives in `server/db` and nowhere else.
 - Anything under `server/` or named `*.server.ts` is blocked from client bundles.
 - New tunable value? Put it in `src/domain/constants.ts`.
+
+Tests live at the repo root in `tests/` (`npm test` runs Vitest):
+rule-level tests next to each concern (`insights.test.ts`, `detectors.test.ts`,
+`spatial.test.ts`, `motion.test.ts`, `adapters.test.ts`) and UI tests under
+`tests/ui/`.
