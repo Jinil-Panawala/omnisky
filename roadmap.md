@@ -19,3 +19,5 @@
 - [ ] Daily curated AI digest email for subscribed users
 - [ ] Codebase-wide simplification / cleanup pass
 - [ ] Unit tests (detection rules, adapters, spatial/motion helpers)
+- [ ] Click an AI insight / alert to fly the globe to that location
+- [ ] Make Active Alerts populate reliably (explain the panel, widen detection)
