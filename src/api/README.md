@@ -10,3 +10,5 @@ Rules:
 - No direct database queries — call a service, which calls the query layer.
 - External callers (webhooks, cron) do **not** use these; they hit the HTTP
   routes under `src/routes/api/public/`.
+
+See also: `src/routes/api/README.md` for how HTTP endpoints are organized.
