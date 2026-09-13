@@ -6,6 +6,7 @@ import {
   detectActivitySpike,
   detectDarkVessels,
   detectFormations,
+  detectHotspots,
   detectLaunchWindows,
   detectLoitering,
   rankCandidates,
@@ -20,19 +21,22 @@ export interface DetectionResult {
 
 export async function detectCandidates(baseline: number | null): Promise<DetectionResult> {
   const now = Date.now();
-  const [aircraft, vessels, launches, history, aircraftCount] = await Promise.all([
-    repo.findRecentAircraft(),
-    repo.findRecentVessels(),
-    repo.findLaunchWindow(),
-    repo.findAircraftHistory(),
-    repo.countAircraft(),
-  ]);
+  const [aircraft, vesselLastSeen, activeVessels, launches, history, aircraftCount] =
+    await Promise.all([
+      repo.findRecentAircraft(),
+      repo.findVesselLastSeen(),
+      repo.findActiveVesselIds(),
+      repo.findLaunchWindow(),
+      repo.findAircraftHistory(),
+      repo.countAircraft(),
+    ]);
 
   const candidates = [
     ...detectLoitering(history, now),
-    ...detectDarkVessels(vessels, now),
+    ...detectDarkVessels(vesselLastSeen, activeVessels, now),
     ...detectFormations(aircraft, now),
     ...detectLaunchWindows(launches, now),
+    ...detectHotspots(aircraft, now),
     ...detectActivitySpike(aircraftCount, baseline, now),
   ];
 

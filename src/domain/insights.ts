@@ -9,7 +9,13 @@ import type { EntityType } from "./entities";
 
 export type InsightKind = "alert" | "insight";
 export type InsightSeverity = "critical" | "warning" | "info";
-export type InsightCategory = "loitering" | "dark" | "activity" | "formation" | "launch";
+export type InsightCategory =
+  | "loitering"
+  | "dark"
+  | "activity"
+  | "formation"
+  | "launch"
+  | "hotspot";
 
 /** A detected situation, before the AI wording pass. */
 export interface InsightCandidate {
@@ -42,8 +48,8 @@ export interface InsightRecord {
 export const INSIGHT_RULES = {
   /** Aircraft loitering: circling inside a small radius for a long while. */
   loitering: { minPoints: 8, maxRadiusKm: 28, minMinutes: 40 },
-  /** Vessels that stopped broadcasting AIS but were recently seen. */
-  dark: { minQuietMinutes: 25, maxQuietMinutes: 180, minSpeedKn: 2 },
+  /** Vessels last seen underway that have since gone quiet on AIS. */
+  dark: { minQuietMinutes: 35, maxQuietMinutes: 180, maxReports: 6 },
   /**
    * Real formations, not busy airspace: aircraft packed into a few km at a
    * shared altitude and heading.
@@ -52,10 +58,12 @@ export const INSIGHT_RULES = {
     cellDeg: 0.4,
     minCount: 4,
     minAltitudeM: 3000,
-    maxSpreadKm: 12,
+    maxSpreadKm: 15,
     maxAltitudeSpreadM: 1200,
-    maxHeadingSpreadDeg: 25,
+    maxHeadingSpreadDeg: 30,
   },
+  /** Busiest patches of airspace right now — situational context, not a threat. */
+  hotspot: { cellDeg: 2, minCount: 25, maxReports: 2 },
   /** Global aircraft-count change versus the previous run. */
   activity: { minChangePct: 25, minBaseline: 300 },
   /** Launch windows opening or just closed. */
@@ -96,13 +104,12 @@ export interface AircraftRow {
   updated_at: string;
 }
 
-export interface VesselRow {
+/** Last known history fix for a vessel, used to spot AIS drop-outs. */
+export interface VesselLastSeen {
   mmsi: string;
-  ship_name: string | null;
-  lat: number | null;
-  lon: number | null;
-  speed_kn: number | null;
-  updated_at: string;
+  lat: number;
+  lon: number;
+  lastSeenMs: number;
 }
 
 export interface LaunchRow {
@@ -195,34 +202,74 @@ export function detectLoitering(points: HistoryPoint[], now: number): InsightCan
   return out;
 }
 
-/** Vessels that were moving and then stopped reporting AIS. */
-export function detectDarkVessels(vessels: VesselRow[], now: number): InsightCandidate[] {
-  const { minQuietMinutes, maxQuietMinutes, minSpeedKn } = INSIGHT_RULES.dark;
+/**
+ * Vessels whose AIS track stops: they appear in recent history but no longer
+ * report a live position. Live rows expire on a short TTL, so absence from the
+ * live table is the signal, not a stale timestamp.
+ */
+export function detectDarkVessels(
+  lastSeen: VesselLastSeen[],
+  activeMmsi: Set<string>,
+  now: number,
+): InsightCandidate[] {
+  const { minQuietMinutes, maxQuietMinutes, maxReports } = INSIGHT_RULES.dark;
   const out: InsightCandidate[] = [];
-  for (const v of vessels) {
-    if (v.lat == null || v.lon == null) continue;
-    if ((v.speed_kn ?? 0) < minSpeedKn) continue;
-    const quietMinutes = (now - new Date(v.updated_at).getTime()) / 60_000;
+  for (const v of lastSeen) {
+    if (activeMmsi.has(v.mmsi)) continue;
+    const quietMinutes = (now - v.lastSeenMs) / 60_000;
     if (quietMinutes < minQuietMinutes || quietMinutes > maxQuietMinutes) continue;
     out.push({
       kind: "alert",
       category: "dark",
-      severity: quietMinutes > 60 ? "critical" : "warning",
+      severity: quietMinutes > 90 ? "critical" : "warning",
       entityType: "ship",
       entityId: v.mmsi,
       title: "AIS Signal Lost",
-      description: `${v.ship_name?.trim() || `MMSI ${v.mmsi}`} stopped broadcasting ${Math.round(quietMinutes)} minutes ago while underway at ${roundTo(v.speed_kn ?? 0)} kn near ${roundTo(v.lat, 2)}, ${roundTo(v.lon, 2)}.`,
+      description: `Vessel MMSI ${v.mmsi} stopped broadcasting AIS ${Math.round(quietMinutes)} minutes ago; last fix near ${roundTo(v.lat, 2)}, ${roundTo(v.lon, 2)}.`,
       signal: {
         mmsi: v.mmsi,
         quietMinutes: Math.round(quietMinutes),
-        speedKn: v.speed_kn,
         lat: roundTo(v.lat, 2),
         lon: roundTo(v.lon, 2),
       },
       dedupKey: dedupKey("dark", v.mmsi, now),
     });
+    if (out.length >= maxReports) break;
   }
   return out;
+}
+
+/** Busiest airspace cells: routine context so the console always has a read. */
+export function detectHotspots(aircraft: AircraftRow[], now: number): InsightCandidate[] {
+  const { cellDeg, minCount, maxReports } = INSIGHT_RULES.hotspot;
+  const cells = new Map<string, AircraftRow[]>();
+  for (const a of aircraft) {
+    if (a.lat == null || a.lon == null || a.on_ground) continue;
+    const key = `${Math.floor(a.lat / cellDeg)}|${Math.floor(a.lon / cellDeg)}`;
+    const list = cells.get(key);
+    if (list) list.push(a);
+    else cells.set(key, [a]);
+  }
+
+  return [...cells.entries()]
+    .filter(([, list]) => list.length >= minCount)
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, maxReports)
+    .map(([key, list]) => {
+      const lat = list.reduce((s, a) => s + (a.lat ?? 0), 0) / list.length;
+      const lon = list.reduce((s, a) => s + (a.lon ?? 0), 0) / list.length;
+      return {
+        kind: "insight" as const,
+        category: "hotspot" as const,
+        severity: "info" as const,
+        entityType: "aircraft" as const,
+        entityId: list[0]!.icao24,
+        title: "Dense Air Traffic",
+        description: `${list.length} aircraft are airborne within about ${cellDeg} degrees of ${roundTo(lat, 1)}, ${roundTo(lon, 1)}.`,
+        signal: { count: list.length, lat: roundTo(lat, 1), lon: roundTo(lon, 1) },
+        dedupKey: dedupKey("hotspot", key, now),
+      };
+    });
 }
 
 /** Aircraft flying as a tight group: close together, same altitude and heading. */
