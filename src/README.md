@@ -3,13 +3,15 @@
 ```text
 src/
   domain/      Shared vocabulary. Pure types, constants and rules. No I/O.
-               entities.ts   the Entity model the UI renders
-               console.ts    UI state types (filters, layers, panels, viewport)
-               live.ts       wire format between backend and browser
-               ingest.ts     pure ingestion rules (coordinate validity, dedupe, TTLs)
-               constants.ts  every tunable: names, polling cadence, row budgets
+               entities.ts    the Entity model the UI renders
+               console.ts     UI state types (filters, layers, panels, viewport)
+               live.ts        wire format between backend and browser
+               ingest.ts      pure ingestion rules (coordinate validity, dedupe, TTLs)
+               constants.ts   every tunable: names, polling cadence, row budgets
+               strings.ts     every user-facing label in one place
+               insights/      detection rules — one file per detector under detectors/
 
-  api/         Client-callable RPC (TanStack server functions). Thin wrappers
+  functions/   Client-callable RPC (TanStack server functions). Thin wrappers
                over services — no SQL, no business logic.
 
   server/      Backend only. Never imported from components.
@@ -35,6 +37,7 @@ src/
   hooks/       Client data hooks (useLiveEntities drives the live pipeline).
   lib/         Client-safe helpers: geo maths, motion smoothing, row adapters.
   data/mock/   Demo dataset used by Demo mode.
+  data/mock/   Demo dataset used by Demo mode.
   integrations/supabase/  Generated clients and auth glue (do not edit).
 ```
 
@@ -49,5 +52,5 @@ src/
 
 Tests live at the repo root in `tests/` (`npm test` runs Vitest):
 rule-level tests next to each concern (`insights.test.ts`, `detectors.test.ts`,
-`spatial.test.ts`, `motion.test.ts`, `adapters.test.ts`) and UI tests under
-`tests/ui/`.
+`spatial.test.ts`, `motion.test.ts`, `adapters.test.ts`, `panel-format.test.ts`),
+UI tests under `tests/ui/`, and backend/service tests under `tests/server/`.
