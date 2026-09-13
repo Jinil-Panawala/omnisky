@@ -9,6 +9,7 @@ import type {
   InsightCandidate,
   InsightRecord,
   LaunchRow,
+  VesselLastSeen,
   VesselRow,
 } from "@/domain/insights";
 import { getAdminClient, getPublicClient } from "./client.server";
@@ -57,6 +58,37 @@ export async function findRecentVessels(limit = 5000): Promise<VesselRow[]> {
     .order("updated_at", { ascending: false })
     .limit(limit);
   return (data ?? []) as unknown as VesselRow[];
+}
+
+/** MMSIs currently reporting a live position (rows expire on a short TTL). */
+export async function findActiveVesselIds(limit = 30000): Promise<Set<string>> {
+  const client = await getAdminClient();
+  const { data } = await client.from("vessel_positions").select("mmsi").limit(limit);
+  return new Set(((data ?? []) as Array<{ mmsi: string }>).map((r) => r.mmsi));
+}
+
+/** Latest recorded fix per vessel within the lookback window. */
+export async function findVesselLastSeen(minutes = 180, limit = 20000): Promise<VesselLastSeen[]> {
+  const client = await getAdminClient();
+  const { data } = await client
+    .from("position_history")
+    .select("craft_id, lat, lon, recorded_at")
+    .eq("craft_type", "vessel")
+    .gte("recorded_at", new Date(Date.now() - minutes * 60_000).toISOString())
+    .order("recorded_at", { ascending: true })
+    .limit(limit);
+
+  const latest = new Map<string, VesselLastSeen>();
+  for (const row of (data ?? []) as Array<Partial<HistoryPoint>>) {
+    if (!row.craft_id || row.lat == null || row.lon == null || !row.recorded_at) continue;
+    latest.set(row.craft_id, {
+      mmsi: row.craft_id,
+      lat: row.lat,
+      lon: row.lon,
+      lastSeenMs: new Date(row.recorded_at).getTime(),
+    });
+  }
+  return [...latest.values()].sort((a, b) => a.lastSeenMs - b.lastSeenMs);
 }
 
 export async function findLaunchWindow(): Promise<LaunchRow[]> {
