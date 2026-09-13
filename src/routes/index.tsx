@@ -165,8 +165,8 @@ function Index() {
       else if (e.type === "satellite") tally.satellites += 1;
       else if (e.type === "launch") tally.launches += 1;
     }
-    return { ...tally, alerts: mockDataset.alerts.length };
-  }, [allEntities]);
+    return { ...tally, alerts: alerts.length };
+  }, [allEntities, alerts.length]);
 
   // Filter choices come from the data actually in play, with live counts.
   const facets = useMemo(() => {
@@ -293,10 +293,10 @@ function Index() {
           {panels.alerts && (
             <div className="hidden xl:flex w-72 shrink-0 flex-col border-l border-console-border">
               <div className="flex-1 min-h-0">
-                <AlertsPanel alerts={mockDataset.alerts} onSelect={(id) => handleSelectById(id)} />
+                <AlertsPanel alerts={alerts} onSelect={(id) => handleSelectById(id)} />
               </div>
               <div className="flex-1 min-h-0 border-t border-console-border">
-                <AiInsights insights={mockDataset.insights} />
+                <AiInsights insights={insights} />
               </div>
             </div>
           )}
