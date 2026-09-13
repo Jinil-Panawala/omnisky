@@ -18,3 +18,4 @@
 - [ ] Accounts (email + Google sign-in) with profiles
 - [ ] Daily curated AI digest email for subscribed users
 - [ ] Codebase-wide simplification / cleanup pass
+- [ ] Unit tests (detection rules, adapters, spatial/motion helpers)
