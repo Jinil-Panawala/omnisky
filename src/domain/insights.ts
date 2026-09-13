@@ -9,7 +9,13 @@ import type { EntityType } from "./entities";
 
 export type InsightKind = "alert" | "insight";
 export type InsightSeverity = "critical" | "warning" | "info";
-export type InsightCategory = "loitering" | "dark" | "activity" | "formation" | "launch";
+export type InsightCategory =
+  | "loitering"
+  | "dark"
+  | "activity"
+  | "formation"
+  | "launch"
+  | "hotspot";
 
 /** A detected situation, before the AI wording pass. */
 export interface InsightCandidate {
@@ -56,6 +62,8 @@ export const INSIGHT_RULES = {
     maxAltitudeSpreadM: 1200,
     maxHeadingSpreadDeg: 30,
   },
+  /** Busiest patches of airspace right now — situational context, not a threat. */
+  hotspot: { cellDeg: 2, minCount: 25, maxReports: 2 },
   /** Global aircraft-count change versus the previous run. */
   activity: { minChangePct: 25, minBaseline: 300 },
   /** Launch windows opening or just closed. */
@@ -238,6 +246,39 @@ export function detectDarkVessels(
     if (out.length >= maxReports) break;
   }
   return out;
+}
+
+/** Busiest airspace cells: routine context so the console always has a read. */
+export function detectHotspots(aircraft: AircraftRow[], now: number): InsightCandidate[] {
+  const { cellDeg, minCount, maxReports } = INSIGHT_RULES.hotspot;
+  const cells = new Map<string, AircraftRow[]>();
+  for (const a of aircraft) {
+    if (a.lat == null || a.lon == null || a.on_ground) continue;
+    const key = `${Math.floor(a.lat / cellDeg)}|${Math.floor(a.lon / cellDeg)}`;
+    const list = cells.get(key);
+    if (list) list.push(a);
+    else cells.set(key, [a]);
+  }
+
+  return [...cells.entries()]
+    .filter(([, list]) => list.length >= minCount)
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, maxReports)
+    .map(([key, list]) => {
+      const lat = list.reduce((s, a) => s + (a.lat ?? 0), 0) / list.length;
+      const lon = list.reduce((s, a) => s + (a.lon ?? 0), 0) / list.length;
+      return {
+        kind: "insight" as const,
+        category: "hotspot" as const,
+        severity: "info" as const,
+        entityType: "aircraft" as const,
+        entityId: list[0]!.icao24,
+        title: "Dense Air Traffic",
+        description: `${list.length} aircraft are airborne within about ${cellDeg} degrees of ${roundTo(lat, 1)}, ${roundTo(lon, 1)}.`,
+        signal: { count: list.length, lat: roundTo(lat, 1), lon: roundTo(lon, 1) },
+        dedupKey: dedupKey("hotspot", key, now),
+      };
+    });
 }
 
 /** Aircraft flying as a tight group: close together, same altitude and heading. */
