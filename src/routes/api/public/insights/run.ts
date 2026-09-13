@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authorizedIngest } from "@/server/http/ingest-route.server";
+import { log } from "@/server/observability/log.server";
 
 /** Scheduled insight generation (pg_cron, every 10 minutes). */
 async function handle({ request }: { request: Request }): Promise<Response> {
@@ -12,7 +13,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     return Response.json({ ok: true, ...result });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    console.error("insight run failed", message);
+    log.error("api.insights", "insight run failed", message);
     return Response.json({ ok: false, error: message }, { status: 500 });
   }
 }

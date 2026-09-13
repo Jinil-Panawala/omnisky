@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authorizedIngest } from "@/server/http/ingest-route.server";
+import { log } from "@/server/observability/log.server";
 
 /** Scheduled daily digest composition (pg_cron, once a day). */
 async function handle({ request }: { request: Request }): Promise<Response> {
@@ -13,7 +14,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     return Response.json({ ok: true, ...result });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    console.error("digest run failed", message);
+    log.error("api.digest", "digest run failed", message);
     return Response.json({ ok: false, error: message }, { status: 500 });
   }
 }

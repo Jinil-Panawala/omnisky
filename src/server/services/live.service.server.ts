@@ -15,6 +15,7 @@ import {
   findVesselsInBounds,
 } from "@/server/db/snapshot.repository.server";
 import { secondsSinceSuccess } from "@/server/db/sources.repository.server";
+import { log } from "@/server/observability/log.server";
 
 /** Everything the console renders in one round trip, scoped to the viewport. */
 export async function getLiveSnapshot(input: SnapshotInput): Promise<LiveSnapshot> {
@@ -74,7 +75,7 @@ async function runIfStale(
   try {
     return await run();
   } catch (e) {
-    console.error(`on-demand ingest failed for ${sourceKey}`, e);
+    log.error("live.refresh", `on-demand ingest failed for ${sourceKey}`, e);
     return null;
   }
 }
