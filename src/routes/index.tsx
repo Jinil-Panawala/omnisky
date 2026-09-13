@@ -2,17 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { ClientOnly } from "@/components/ClientOnly";
 import { mockDataset } from "@/data/mock";
-import type { Entity } from "@/data/mock";
+import type { Entity } from "@/domain/entities";
 import { useLiveEntities } from "@/hooks/useLiveEntities";
 import { useInsightFeed } from "@/hooks/useInsightFeed";
 import { useConsoleFlags } from "@/hooks/useConsoleFlags";
 import { usePanelVisibility } from "@/hooks/usePanelVisibility";
 import { useConsoleDataset } from "@/hooks/useConsoleDataset";
 import { useSelectedTrack } from "@/hooks/useSelectedTrack";
-import { SOURCE_ATTRIBUTION } from "@/lib/live/adapters";
 import { lodForHeight } from "@/lib/geo/spatial";
 import { generateStressDataset } from "@/lib/dev/synthetic";
-import { STRINGS } from "@/domain/strings";
 import { SNAPSHOT_LIMITS } from "@/domain/constants";
 import {
   TopBar,
@@ -25,6 +23,8 @@ import {
   AiInsights,
   MapCanvasDynamic,
   PanelToggles,
+  ConsoleLoading,
+  ConsoleFooter,
 } from "@/components/console";
 import type { CameraFocus, GlobeViewState } from "@/components/console";
 import type {
@@ -253,39 +253,3 @@ function Index() {
   );
 }
 
-function ConsoleLoading() {
-  return (
-    <div className="flex h-screen w-screen items-center justify-center bg-console-bg text-console-muted">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-mono uppercase tracking-wider">
-          {STRINGS.app.loadingConsole}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ConsoleFooter({ mode }: { mode: DataMode }) {
-  return (
-    <footer className="h-6 shrink-0 flex items-center gap-3 px-4 border-t border-console-border bg-console-panel overflow-x-auto">
-      <span className="text-[10px] font-mono uppercase tracking-wider text-console-dim shrink-0">
-        {mode === "live" ? STRINGS.footer.liveLabel : STRINGS.footer.demoLabel}
-      </span>
-      {SOURCE_ATTRIBUTION.map((s) => (
-        <a
-          key={s.label}
-          href={s.href}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-[10px] font-mono text-console-dim hover:text-console-text whitespace-nowrap"
-        >
-          {s.scope}: {s.label}
-        </a>
-      ))}
-      <span className="text-[10px] font-mono text-console-dim whitespace-nowrap">
-        {STRINGS.footer.disclaimer}
-      </span>
-    </footer>
-  );
-}

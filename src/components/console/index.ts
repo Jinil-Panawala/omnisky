@@ -4,6 +4,8 @@ export { CounterStrip } from "./layout/CounterStrip";
 export { ControlPanel } from "./layout/ControlPanel";
 export { FiltersPanel } from "./layout/FiltersPanel";
 export { PanelToggles, type PanelVisibility } from "./layout/PanelToggles";
+export { ConsoleLoading } from "./layout/ConsoleLoading";
+export { ConsoleFooter } from "./layout/ConsoleFooter";
 
 export { MapCanvasDynamic, type CameraFocus, type GlobeViewState } from "./globe/MapCanvasDynamic";
 export { entityIconUrl } from "./globe/entity-icons";

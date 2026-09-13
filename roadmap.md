@@ -29,3 +29,4 @@
 - [x] Click an insight/alert to fly the globe there
 - [x] Unit tests for detection rules and geo helpers (bun run test)
 - [ ] Email delivery of the digest — waiting on a verified sender domain
+- [x] UI component tests (panels, counters, feed, console shell) with Testing Library
