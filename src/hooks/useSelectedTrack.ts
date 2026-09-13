@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { Entity } from "@/domain/console";
-import { getObjectTrack } from "@/api/live.functions";
+import { getObjectTrack } from "@/functions/live.functions";
 
 /** Recent position history for the selected aircraft or ship, if trackable. */
 export function useSelectedTrack(entity: Entity | undefined, enabled: boolean) {

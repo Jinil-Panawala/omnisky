@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getLiveSnapshot, refreshLiveFeeds } from "@/api/live.functions";
+import { getLiveSnapshot, refreshLiveFeeds } from "@/functions/live.functions";
 import { LIVE_POLLING } from "@/domain/constants";
 import type { LiveSnapshot, SourceHealthRow } from "@/domain/live";
 import {
