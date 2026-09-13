@@ -60,7 +60,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { settings, updateSettings } = useConsoleSettings();
+  const { user } = useAuth();
+  const { settings, updateSettings } = useConsoleSettings(!!user);
   const [layers, setLayers] = useState<LayerVisibility>(settings.defaultLayers);
   const [filters, setFilters] = useState<Filters>({
     search: "",
@@ -172,6 +173,7 @@ function Index() {
           lastUpdated={live.lastUpdated}
           settings={settings}
           onSettingsChange={updateSettings}
+          showSettings={!!user}
         />
         <div className="flex items-center border-b border-console-border bg-console-bg">
           <div className="flex-1 min-w-0">

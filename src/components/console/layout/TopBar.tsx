@@ -17,6 +17,8 @@ interface TopBarProps {
   lastUpdated?: Date | null;
   settings: ConsoleSettings;
   onSettingsChange: (patch: Partial<ConsoleSettings>) => void;
+  /** Settings are a signed-in-only feature; hide the gear otherwise. */
+  showSettings?: boolean;
 }
 
 const STATUS_STYLES: Record<string, { dot: string; label: string }> = {
@@ -34,6 +36,7 @@ export function TopBar({
   lastUpdated,
   settings,
   onSettingsChange,
+  showSettings = false,
 }: TopBarProps) {
   const status = STATUS_STYLES[feedStatus] ?? STATUS_STYLES["connecting"]!;
   return (
@@ -99,7 +102,7 @@ export function TopBar({
           </div>
         )}
 
-        <SettingsMenu settings={settings} onChange={onSettingsChange} />
+        {showSettings && <SettingsMenu settings={settings} onChange={onSettingsChange} />}
         <Button
           asChild
           variant="ghost"
