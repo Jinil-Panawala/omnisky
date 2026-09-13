@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getInsightFeed } from "@/api/insights.functions";
+import { getInsightFeed } from "@/functions/insights.functions";
 import { INSIGHT_FEED_POLL_MS } from "@/domain/constants";
 import type { ActiveAlert, AiInsight } from "@/domain/entities";
 

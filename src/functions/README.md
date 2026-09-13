@@ -1,4 +1,4 @@
-# api — start here
+# functions — start here
 
 The only backend surface the browser is allowed to call. Each file exports thin
 `createServerFn` wrappers that validate input and delegate straight to a service

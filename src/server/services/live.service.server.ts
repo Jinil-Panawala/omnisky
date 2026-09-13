@@ -1,7 +1,7 @@
 /**
  * Live-data service: the only backend entry point the client uses for reads.
  * It composes the query layer (`src/server/db`) and the ingestion services;
- * `src/api/live.functions.ts` exposes these as RPC with no logic of its own.
+ * `src/functions/live.functions.ts` exposes these as RPC with no logic of its own.
  */
 import { ON_DEMAND_REFRESH_MIN_INTERVAL_S, SNAPSHOT_LIMITS } from "@/domain/constants";
 import { SOURCE_KEYS, type LiveSnapshot, type SnapshotInput, type TrackInput, type TrackPoint } from "@/domain/live";

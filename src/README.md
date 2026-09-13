@@ -40,9 +40,9 @@ src/
 
 ## Rules of the road
 
-- Dependency direction: `routes/components` → `api` → `server/services` →
+- Dependency direction: `routes/components` → `functions` → `server/services` →
   `server/db`. `domain` is a leaf everyone may import.
-- Only services are callable by the client, and only through `src/api`.
+- Only services are callable by the client, and only through `src/functions`.
 - SQL lives in `server/db` and nowhere else.
 - Anything under `server/` or named `*.server.ts` is blocked from client bundles.
 - New tunable value? Put it in `src/domain/constants.ts`.

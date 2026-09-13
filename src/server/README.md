@@ -1,7 +1,7 @@
 # server — start here
 
 Backend code. Never imported by a component directly; the browser reaches it
-only through the server functions in `src/api/`.
+only through the server functions in `src/functions/`.
 
 | Folder | Holds |
 | --- | --- |
